@@ -484,3 +484,7 @@ cython_debug/
 .pypirc
 
 .vscode
+data/
+wandb/
+images/
+autoencoder-mnist/
