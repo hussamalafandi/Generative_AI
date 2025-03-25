@@ -487,4 +487,4 @@ cython_debug/
 data/
 wandb/
 images/
-autoencoder-mnist/
+models/
