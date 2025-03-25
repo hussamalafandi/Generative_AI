@@ -486,5 +486,4 @@ cython_debug/
 .vscode
 data/
 wandb/
-images/
 models/
