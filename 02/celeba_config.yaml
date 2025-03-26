@@ -1,0 +1,18 @@
+dataset: "CELEBA"
+data_root: "./data"
+batch_size: 128
+epochs: 25
+lr: 0.0002
+beta1: 0.5
+latent_dim: 100
+image_size: 64       # output image size (64x64)
+nc: 3                # number of channels (3 for RGB)
+ngf: 64              # generator feature map size
+ndf: 64              # discriminator feature map size
+log_interval: 100
+checkpoint_interval: 1
+checkpoint_path: "checkpoints/gan_checkpoint.pth"
+wandb_project: "GAN_CelebA"
+num_eval_samples: 16
+weight_decay: 0
+use_cuda: true
