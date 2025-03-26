@@ -1,3 +1,4 @@
+import datetime
 import os
 import argparse
 import yaml
@@ -96,6 +97,11 @@ def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, ep
     }
     torch.save(state, path)
     print(f"Checkpoint saved at epoch {epoch} to {path}")
+    
+    # Log the checkpoint as a WandB artifact for versioning.
+    artifact = wandb.Artifact("model-checkpoint", type="model", description=f"Checkpoint at epoch {epoch}")
+    artifact.add_file(path)
+    wandb.log_artifact(artifact)
 
 def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
     state = torch.load(path, map_location=device)
@@ -199,6 +205,11 @@ def get_dataloader(config):
     
     return DataLoader(subset, batch_size=config["batch_size"], shuffle=True)
 
+def generate_run_name(config):
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"DCGAN_CelebA_lr{config['lr']}_bs{config['batch_size']}_{timestamp}"
+    return run_name
+
 # ------------------------------
 # Main Training Function
 # ------------------------------
@@ -224,7 +235,9 @@ def main(config):
             config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config
         )
 
-    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
+    run_name = generate_run_name(config)
+
+    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id, name=run_name)
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
