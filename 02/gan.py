@@ -1,0 +1,205 @@
+import os
+import argparse
+import yaml
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+import torchvision
+from torchvision import datasets, transforms
+import wandb
+from tqdm import tqdm  # Add tqdm import
+
+# ------------------------------
+# Define the Generator Network
+# ------------------------------
+class Generator(nn.Module):
+    def __init__(self, config):
+        super(Generator, self).__init__()
+        self.latent_dim = config["latent_dim"]
+        self.net = nn.Sequential(
+            nn.Linear(self.latent_dim, 128),
+            nn.ReLU(True),
+            nn.Linear(128, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(True),
+            nn.Linear(256, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(True),
+            nn.Linear(512, 28*28),
+            nn.Tanh()
+        )
+
+    def forward(self, z):
+        img = self.net(z)
+        img = img.view(z.size(0), 1, 28, 28)
+        return img
+
+# ------------------------------
+# Define the Discriminator Network
+# ------------------------------
+class Discriminator(nn.Module):
+    def __init__(self, config):
+        super(Discriminator, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(28*28, 512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(512, 256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Linear(256, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, img):
+        img_flat = img.view(img.size(0), -1)
+        validity = self.net(img_flat)
+        return validity
+
+# ------------------------------
+# Checkpoint Saving & Loading
+# ------------------------------
+def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch):
+    state = {
+        "epoch": epoch,
+        "generator_state_dict": generator.state_dict(),
+        "discriminator_state_dict": discriminator.state_dict(),
+        "optimizer_G_state_dict": optimizer_G.state_dict(),
+        "optimizer_D_state_dict": optimizer_D.state_dict()
+    }
+    torch.save(state, path)
+    print(f"Checkpoint saved at epoch {epoch} to {path}")
+
+def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device):
+    state = torch.load(path, map_location=device)
+    generator.load_state_dict(state["generator_state_dict"])
+    discriminator.load_state_dict(state["discriminator_state_dict"])
+    optimizer_G.load_state_dict(state["optimizer_G_state_dict"])
+    optimizer_D.load_state_dict(state["optimizer_D_state_dict"])
+    start_epoch = state["epoch"] + 1
+    print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch}")
+    return start_epoch
+
+# ------------------------------
+# Training Epoch Function
+# ------------------------------
+def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch):
+    generator.train()
+    discriminator.train()
+    
+    # Wrap dataloader with tqdm for progress bar
+    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{config['epochs']}", unit="batch", leave=False)
+    for i, (imgs, _) in enumerate(progress_bar):
+        batch_size = imgs.size(0)
+        imgs = imgs.to(device)
+
+        # Define adversarial ground truths
+        valid = torch.ones(batch_size, 1, device=device)
+        fake = torch.zeros(batch_size, 1, device=device)
+
+        # -----------------
+        #  Train Generator
+        # -----------------
+        optimizer_G.zero_grad()
+        z = torch.randn(batch_size, config["latent_dim"], device=device)
+        gen_imgs = generator(z)
+        # Loss: generator tries to fool the discriminator
+        g_loss = F.binary_cross_entropy(discriminator(gen_imgs), valid)
+        g_loss.backward()
+        optimizer_G.step()
+
+        # ---------------------
+        #  Train Discriminator
+        # ---------------------
+        optimizer_D.zero_grad()
+        real_loss = F.binary_cross_entropy(discriminator(imgs), valid)
+        fake_loss = F.binary_cross_entropy(discriminator(gen_imgs.detach()), fake)
+        d_loss = (real_loss + fake_loss) / 2
+        d_loss.backward()
+        optimizer_D.step()
+
+        # Update progress bar description
+        progress_bar.set_postfix(g_loss=g_loss.item(), d_loss=d_loss.item())
+
+        # Log training losses at given intervals
+        if i % config["log_interval"] == 0:
+            wandb.log({
+                "g_loss": g_loss.item(),
+                "d_loss": d_loss.item(),
+                "epoch": epoch,
+                "batch": i
+            })
+
+# ------------------------------
+# Evaluation Function
+# ------------------------------
+def evaluate(generator, device, config, step):
+    """Generates images from fixed noise and logs them to WandB."""
+    generator.eval()
+    with torch.no_grad():
+        fixed_noise = torch.randn(config["num_eval_samples"], config["latent_dim"], device=device)
+        gen_imgs = generator(fixed_noise)
+        # Create a grid of generated images
+        grid = torchvision.utils.make_grid(gen_imgs, nrow=4, normalize=True)
+        wandb.log({"generated_images": [wandb.Image(grid, caption="Generated Images")]}, step=step)
+    generator.train()
+
+# ------------------------------
+# DataLoader Initialization
+# ------------------------------
+def get_dataloader(config):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
+    ])
+    dataset = datasets.MNIST(root=config["data_root"], train=True, transform=transform, download=True)
+    return DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+
+# ------------------------------
+# Main Training Function
+# ------------------------------
+def main(config):
+    if config["use_cuda"] and not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available, but 'use_cuda' is set to True in the configuration.")
+    
+    device = torch.device("cuda" if config["use_cuda"] and torch.cuda.is_available() else "cpu")
+    
+    # Initialize models and optimizers
+    generator = Generator(config).to(device)
+    discriminator = Discriminator(config).to(device)
+    optimizer_G = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
+    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
+    
+    dataloader = get_dataloader(config)
+
+    # Initialize WandB logging
+    wandb.init(project=config["wandb_project"], config=config)
+    wandb.watch(generator, log="all")
+    wandb.watch(discriminator, log="all")
+
+    # Resume from a checkpoint if available
+    start_epoch = 0
+    if os.path.exists(config["checkpoint_path"]):
+        start_epoch = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
+
+    # Training Loop: Pass dependencies explicitly to each function
+    for epoch in range(start_epoch, config["epochs"]):
+        train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch)
+        evaluate(generator, device, config, step=epoch)
+        if (epoch + 1) % config["checkpoint_interval"] == 0:
+            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
+
+    wandb.finish()
+
+# ------------------------------
+# Main Execution: Load Config & Start Training
+# ------------------------------
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train a modular GAN with dependency injection.")
+    parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML configuration file")
+    args = parser.parse_args()
+
+    # Load hyperparameters from YAML config file
+    with open(args.config, "r") as f:
+        config = yaml.safe_load(f)
+
+    main(config)
