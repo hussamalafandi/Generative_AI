@@ -64,7 +64,8 @@ def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, ep
         "generator_state_dict": generator.state_dict(),
         "discriminator_state_dict": discriminator.state_dict(),
         "optimizer_G_state_dict": optimizer_G.state_dict(),
-        "optimizer_D_state_dict": optimizer_D.state_dict()
+        "optimizer_D_state_dict": optimizer_D.state_dict(),
+        "wandb_run_id": wandb.run.id if wandb.run else None,
     }
     torch.save(state, path)
     print(f"Checkpoint saved at epoch {epoch} to {path}")
@@ -76,8 +77,9 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
     optimizer_G.load_state_dict(state["optimizer_G_state_dict"])
     optimizer_D.load_state_dict(state["optimizer_D_state_dict"])
     start_epoch = state["epoch"] + 1
+    wandb_run_id = state.get("wandb_run_id", None)
     print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch}")
-    return start_epoch
+    return start_epoch, wandb_run_id
 
 # ------------------------------
 # Training Epoch Function
@@ -175,15 +177,16 @@ def main(config):
     
     dataloader = get_dataloader(config)
 
-    # Initialize WandB logging
-    wandb.init(project=config["wandb_project"], config=config)
+    # If a checkpoint exists, load it and extract the wandb run id
+    start_epoch = 0
+    run_id = None
+    if os.path.exists(config["checkpoint_path"]):
+        start_epoch, run_id = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
+
+    # Resume the WandB run if possible. Using resume="allow" tells WandB to try to reconnect to the previous run.
+    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
-
-    # Resume from a checkpoint if available
-    start_epoch = 0
-    if os.path.exists(config["checkpoint_path"]):
-        start_epoch = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
 
     # Initialize global step (set based on previous training if resuming)
     global_step = start_epoch * len(dataloader)
