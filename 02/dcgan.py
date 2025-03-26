@@ -51,6 +51,7 @@ class Generator(nn.Module):
     def forward(self, input):
         return self.main(input)
 
+
 # ------------------------------
 # Define the Discriminator Network (DCGAN)
 # ------------------------------
@@ -84,22 +85,29 @@ class Discriminator(nn.Module):
     def forward(self, input):
         return self.main(input).view(-1, 1).squeeze(1)
 
+
 # ------------------------------
-# Helper: Generate a unique checkpoint filename based on key hyperparameters
+# Helper: Generate a unique checkpoint folder based on key hyperparameters
 # ------------------------------
-def generate_checkpoint_path(config):
-    # Create a hash from some critical hyperparameters to uniquely identify the experiment.
+def generate_checkpoint_folder(config):
+    # Create a string from key hyperparameters
     key_params = f"{config['lr']}_{config['batch_size']}_{config['latent_dim']}_{config['ngf']}_{config['ndf']}"
-    config_hash = hashlib.md5(key_params.encode()).hexdigest()[:8]
+
+    config_hash = hashlib.sha256(key_params.encode()).hexdigest()[:8]
     base_path = config.get("checkpoint_dir", "checkpoints")
     os.makedirs(base_path, exist_ok=True)
-    return os.path.join(base_path, f"dcgan_{config_hash}.pth")
+    folder_name = f"dcgan_lr{config['lr']}_bs{config['batch_size']}_latent{config['latent_dim']}_ngf{config['ngf']}_ndf{config['ndf']}_{config_hash}"
+    folder_path = os.path.join(base_path, folder_name)
+    os.makedirs(folder_path, exist_ok=True)
+    return folder_path
+
 
 # ------------------------------
 # Checkpoint Saving & Loading
 # ------------------------------
-def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+def save_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
+    # Save the checkpoint file in the folder
+    checkpoint_path = os.path.join(folder, f"ckpt_epoch_{epoch}.pth")
     state = {
         "epoch": epoch,
         "global_step": global_step,  # Save the current global step
@@ -110,16 +118,29 @@ def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, ep
         "wandb_run_id": wandb.run.id if wandb.run else None,
         "config": config  # Save the config used for training
     }
-    torch.save(state, path)
-    print(f"Checkpoint saved at epoch {epoch} to {path}")
+    torch.save(state, checkpoint_path)
+    print(f"Checkpoint saved at epoch {epoch} to {checkpoint_path}")
+    
+    # Save the configuration next to the checkpoint
+    config_path = os.path.join(folder, "config.yaml")
+    with open(config_path, "w") as f:
+        yaml.dump(config, f)
     
     # Log the checkpoint as a WandB artifact for versioning.
     artifact = wandb.Artifact("model-checkpoint", type="model", description=f"Checkpoint at epoch {epoch}")
-    artifact.add_file(path)
+    artifact.add_file(checkpoint_path)
     wandb.log_artifact(artifact)
 
-def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
-    state = torch.load(path, map_location=device)
+
+def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
+    # Find all checkpoint files in the folder
+    ckpt_files = [f for f in os.listdir(folder) if f.startswith("ckpt_epoch_") and f.endswith(".pth")]
+    if not ckpt_files:
+        return 0, 0, None
+    # Determine the latest checkpoint (highest epoch number)
+    latest_ckpt = max(ckpt_files, key=lambda f: int(f.split("_")[-1].split(".")[0]))
+    checkpoint_path = os.path.join(folder, latest_ckpt)
+    state = torch.load(checkpoint_path, map_location=device)
     pprint(state.keys())
     
     checkpoint_config = state.get("config", {})
@@ -130,7 +151,7 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
             if checkpoint_config.get(key) != current_config.get(key):
                 print(f"  {key}: checkpoint={checkpoint_config.get(key)}, current={current_config.get(key)}")
         print("Warning: Configuration mismatch. Skipping checkpoint loading.")
-        return 0, 0, None  # Return defaults to start fresh
+        return 0, 0, None  # Start fresh
     
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
@@ -141,9 +162,10 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
     global_step = state.get("global_step", 0)
     wandb_run_id = state.get("wandb_run_id", None)
 
-    print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch} with global_step {global_step}")
+    print(f"Loaded checkpoint from {checkpoint_path}, resuming from epoch {start_epoch} with global_step {global_step}")
 
     return start_epoch, global_step, wandb_run_id
+
 
 # ------------------------------
 # Training Epoch Function
@@ -212,6 +234,7 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
     
     return global_step
 
+
 # ------------------------------
 # Evaluation Function
 # ------------------------------
@@ -223,6 +246,7 @@ def evaluate(generator, device, config, step):
         grid = torchvision.utils.make_grid(gen_imgs, nrow=4, normalize=True)
         wandb.log({"generated_images": [wandb.Image(grid, caption="Generated Images")]}, step=step)
     generator.train()
+
 
 # ------------------------------
 # DataLoader Initialization for CelebA
@@ -243,10 +267,11 @@ def get_dataloader(config):
     
     return DataLoader(subset, batch_size=config["batch_size"], shuffle=True)
 
+
 def generate_run_name(config):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_name = config.get("run_name", f"DCGAN_CelebA_lr{config['lr']}_bs{config['batch_size']}_{timestamp}")
-    return run_name
+    return config.get("run_name", f"DCGAN_CelebA_lr{config['lr']}_bs{config['batch_size']}_{timestamp}")
+
 
 # ------------------------------
 # Main Training Function
@@ -265,14 +290,14 @@ def main(config):
     
     dataloader = get_dataloader(config)
     
-    # Use a unique checkpoint file name based on hyperparameters
-    checkpoint_path = generate_checkpoint_path(config)
+    # Create a unique checkpoint folder based on hyperparameters
+    checkpoint_folder = generate_checkpoint_folder(config)
     
     start_epoch = 0
     run_id = None
     global_step = 0
-    if os.path.exists(checkpoint_path) and config.get("resume_training", True):
-        start_epoch, global_step, run_id = load_checkpoint(checkpoint_path, generator, discriminator, optimizer_G, optimizer_D, device, config)
+    if os.path.exists(checkpoint_folder) and config.get("resume_training", True):
+        start_epoch, global_step, run_id = load_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, device, config)
 
     # Generate a meaningful run name if not provided in config
     run_name = generate_run_name(config)
@@ -287,9 +312,10 @@ def main(config):
         
         if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
             evaluate(generator, device, config, step=global_step)
-            save_checkpoint(checkpoint_path, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
+            save_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
 
     wandb.finish()
+
 
 # ------------------------------
 # Main Execution
