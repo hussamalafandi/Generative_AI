@@ -59,6 +59,9 @@ class Discriminator(nn.Module):
 # Checkpoint Saving & Loading
 # ------------------------------
 def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch):
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    
     state = {
         "epoch": epoch,
         "generator_state_dict": generator.state_dict(),
@@ -89,7 +92,7 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
     discriminator.train()
     
     # Wrap dataloader with tqdm for progress bar
-    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{config['epochs']}", unit="batch", leave=False)
+    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
     for i, (imgs, _) in enumerate(progress_bar):
         batch_size = imgs.size(0)
         imgs = imgs.to(device)
@@ -194,9 +197,9 @@ def main(config):
     # Training Loop: Pass dependencies explicitly to each function
     for epoch in range(start_epoch, config["epochs"]):
         global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
-        # Log evaluation images using the updated global step
-        evaluate(generator, device, config, step=global_step)
+
         if (epoch + 1) % config["checkpoint_interval"] == 0:
+            evaluate(generator, device, config, step=global_step)
             save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
 
     wandb.finish()

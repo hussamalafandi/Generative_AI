@@ -6,8 +6,8 @@ lr: 0.0002
 beta1: 0.5
 latent_dim: 100
 log_interval: 100        # number of batches between logging updates
-checkpoint_interval: 1   # save checkpoint every N epochs
-checkpoint_path: "gan_checkpoint.pth"
+checkpoint_interval: 10   # save checkpoint every N epochs
+checkpoint_path: "./models/gan_checkpoint.pth"
 wandb_project: "GAN_Project"
 num_eval_samples: 16     # number of samples to generate for evaluation
 weight_decay: 0.0001     # weight decay for optimizers
