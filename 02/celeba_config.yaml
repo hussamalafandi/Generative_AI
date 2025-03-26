@@ -5,7 +5,7 @@ subset_size: 50000  # number of images to use for training
 
 # Training configuration
 batch_size: 128
-epochs: 25
+epochs: 50
 lr: 0.0002
 beta1: 0.5
 weight_decay: 0
@@ -20,7 +20,7 @@ ndf: 64              # discriminator feature map size
 
 # Logging and checkpointing
 log_interval: 100
-checkpoint_interval: 10
+checkpoint_interval: 5
 checkpoint_path: "models/DCGAN_CelebA/gan_checkpoint.pth"
 wandb_project: "DCGAN_CelebA"
 

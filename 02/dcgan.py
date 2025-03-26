@@ -140,10 +140,15 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
     generator.train()
     discriminator.train()
     
+    total_g_loss = 0.0
+    total_d_loss = 0.0
+    n_batches = 0
+    
     progress_bar = tqdm(dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
     for i, (imgs, _) in enumerate(progress_bar):
         imgs = imgs.to(device)
         batch_size = imgs.size(0)
+        n_batches += 1
 
         # Ground truths
         valid = torch.ones(batch_size, device=device)
@@ -169,18 +174,30 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
         d_loss.backward()
         optimizer_D.step()
 
+        total_g_loss += g_loss.item()
+        total_d_loss += d_loss.item()
+
         progress_bar.set_postfix(g_loss=g_loss.item(), d_loss=d_loss.item())
 
         if i % config["log_interval"] == 0:
             wandb.log({
-                "g_loss": g_loss.item(),
-                "d_loss": d_loss.item(),
+                "batch_g_loss": g_loss.item(),
+                "batch_d_loss": d_loss.item(),
                 "epoch": epoch,
                 "batch": i
             }, step=global_step)
         
         global_step += 1
 
+    # Compute average losses for the epoch
+    avg_g_loss = total_g_loss / n_batches
+    avg_d_loss = total_d_loss / n_batches
+    wandb.log({
+        "epoch_avg_g_loss": avg_g_loss,
+        "epoch_avg_d_loss": avg_d_loss,
+        "epoch": epoch
+    }, step=global_step)
+    
     return global_step
 
 # ------------------------------
@@ -216,7 +233,7 @@ def get_dataloader(config):
 
 def generate_run_name(config):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_name = f"DCGAN_CelebA_lr{config['lr']}_bs{config['batch_size']}_{timestamp}"
+    run_name = config.get("run_name", f"DCGAN_CelebA_lr{config['lr']}_bs{config['batch_size']}_{timestamp}")
     return run_name
 
 # ------------------------------
@@ -244,9 +261,11 @@ def main(config):
             config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config
         )
 
+    # Generate a meaningful run name if not provided in config
     run_name = generate_run_name(config)
+    tags = config.get("tags", [])
 
-    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id, name=run_name)
+    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id, name=run_name, tags=tags)
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
