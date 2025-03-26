@@ -179,7 +179,13 @@ def get_dataloader(config):
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     dataset = datasets.CelebA(root=config["data_root"], split="train", transform=transform, download=True)
-    return DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+    
+    # Use a subset of the dataset
+    subset_size = config.get("subset_size", len(dataset))  # Default to full dataset if not specified
+    indices = torch.randperm(len(dataset))[:subset_size]
+    subset = torch.utils.data.Subset(dataset, indices)
+    
+    return DataLoader(subset, batch_size=config["batch_size"], shuffle=True)
 
 # ------------------------------
 # Main Training Function
