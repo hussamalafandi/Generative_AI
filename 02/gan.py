@@ -58,10 +58,8 @@ class Discriminator(nn.Module):
 # ------------------------------
 # Checkpoint Saving & Loading
 # ------------------------------
-def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch):
-    # Ensure the directory exists
+def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch, config):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    
     state = {
         "epoch": epoch,
         "generator_state_dict": generator.state_dict(),
@@ -69,19 +67,29 @@ def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, ep
         "optimizer_G_state_dict": optimizer_G.state_dict(),
         "optimizer_D_state_dict": optimizer_D.state_dict(),
         "wandb_run_id": wandb.run.id if wandb.run else None,
+        "config": config  # Save the config used for training
     }
     torch.save(state, path)
     print(f"Checkpoint saved at epoch {epoch} to {path}")
 
-def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device):
+def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
     state = torch.load(path, map_location=device)
+    
+    checkpoint_config = state.get("config", {})
+
+    if checkpoint_config != current_config:
+        raise ValueError("Configuration mismatch between checkpoint and current run.")
+    
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
     optimizer_G.load_state_dict(state["optimizer_G_state_dict"])
     optimizer_D.load_state_dict(state["optimizer_D_state_dict"])
+
     start_epoch = state["epoch"] + 1
     wandb_run_id = state.get("wandb_run_id", None)
+
     print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch}")
+
     return start_epoch, wandb_run_id
 
 # ------------------------------
