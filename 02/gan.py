@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 import torchvision
 from torchvision import datasets, transforms
 import wandb
-from tqdm import tqdm  # Add tqdm import
+from tqdm import tqdm
 
 # ------------------------------
 # Define the Generator Network
@@ -82,7 +82,7 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
 # ------------------------------
 # Training Epoch Function
 # ------------------------------
-def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch):
+def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step):
     generator.train()
     discriminator.train()
     
@@ -117,17 +117,21 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
         d_loss.backward()
         optimizer_D.step()
 
-        # Update progress bar description
+        # Update tqdm progress bar with current losses
         progress_bar.set_postfix(g_loss=g_loss.item(), d_loss=d_loss.item())
 
-        # Log training losses at given intervals
+        # Log training losses
         if i % config["log_interval"] == 0:
             wandb.log({
                 "g_loss": g_loss.item(),
                 "d_loss": d_loss.item(),
                 "epoch": epoch,
                 "batch": i
-            })
+            }, step=global_step)
+        
+        global_step += 1
+
+    return global_step
 
 # ------------------------------
 # Evaluation Function
@@ -181,10 +185,14 @@ def main(config):
     if os.path.exists(config["checkpoint_path"]):
         start_epoch = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
 
+    # Initialize global step (set based on previous training if resuming)
+    global_step = start_epoch * len(dataloader)
+
     # Training Loop: Pass dependencies explicitly to each function
     for epoch in range(start_epoch, config["epochs"]):
-        train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch)
-        evaluate(generator, device, config, step=epoch)
+        global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
+        # Log evaluation images using the updated global step
+        evaluate(generator, device, config, step=global_step)
         if (epoch + 1) % config["checkpoint_interval"] == 0:
             save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
 
@@ -194,7 +202,7 @@ def main(config):
 # Main Execution: Load Config & Start Training
 # ------------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train a modular GAN with dependency injection.")
+    parser = argparse.ArgumentParser(description="Train a GAN")
     parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML configuration file")
     args = parser.parse_args()
 
