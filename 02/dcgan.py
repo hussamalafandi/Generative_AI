@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import hashlib
+import logging
 import os
 from pprint import pprint
 
@@ -13,6 +14,16 @@ import yaml
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+
+# ------------------------------
+# Logging Configuration
+# ------------------------------
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+console_handler = logging.StreamHandler()
+console_formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+console_handler.setFormatter(console_formatter)
+logger.addHandler(console_handler)
 
 
 # ------------------------------
@@ -99,6 +110,15 @@ def generate_checkpoint_folder(config):
     folder_name = f"dcgan_lr{config['lr']}_bs{config['batch_size']}_latent{config['latent_dim']}_ngf{config['ngf']}_ndf{config['ndf']}_{config_hash}"
     folder_path = os.path.join(base_path, folder_name)
     os.makedirs(folder_path, exist_ok=True)
+    
+    # Set up a file handler for logging metadata in this folder
+    log_file = os.path.join(folder_path, "experiment.log")
+    file_handler = logging.FileHandler(log_file)
+    file_formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
+    
+    logger.info(f"Checkpoint folder created at: {folder_path}")
     return folder_path
 
 
@@ -106,28 +126,29 @@ def generate_checkpoint_folder(config):
 # Checkpoint Saving & Loading
 # ------------------------------
 def save_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
-    # Save the checkpoint file in the folder
-    checkpoint_path = os.path.join(folder, f"ckpt_epoch_{epoch}.pth")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    checkpoint_filename = f"ckpt_epoch_{epoch}_{timestamp}.pth"
+    checkpoint_path = os.path.join(folder, checkpoint_filename)
     state = {
         "epoch": epoch,
-        "global_step": global_step,  # Save the current global step
+        "global_step": global_step,
         "generator_state_dict": generator.state_dict(),
         "discriminator_state_dict": discriminator.state_dict(),
         "optimizer_G_state_dict": optimizer_G.state_dict(),
         "optimizer_D_state_dict": optimizer_D.state_dict(),
         "wandb_run_id": wandb.run.id if wandb.run else None,
-        "config": config  # Save the config used for training
+        "config": config
     }
     torch.save(state, checkpoint_path)
-    print(f"Checkpoint saved at epoch {epoch} to {checkpoint_path}")
+    logger.info(f"Checkpoint saved at epoch {epoch} to {checkpoint_path}")
     
-    # Save the configuration next to the checkpoint
     config_path = os.path.join(folder, "config.yaml")
     with open(config_path, "w") as f:
         yaml.dump(config, f)
+    logger.info(f"Configuration saved at {config_path}")
     
-    # Log the checkpoint as a WandB artifact for versioning.
-    artifact = wandb.Artifact("model-checkpoint", type="model", description=f"Checkpoint at epoch {epoch}")
+    # Log checkpoint as a WandB artifact with unique naming.
+    artifact = wandb.Artifact(f"model-checkpoint-epoch-{epoch}-{timestamp}", type="model", description=f"Checkpoint at epoch {epoch}")
     artifact.add_file(checkpoint_path)
     wandb.log_artifact(artifact)
 
@@ -136,6 +157,7 @@ def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
     # Find all checkpoint files in the folder
     ckpt_files = [f for f in os.listdir(folder) if f.startswith("ckpt_epoch_") and f.endswith(".pth")]
     if not ckpt_files:
+        logger.info("No checkpoint files found; starting fresh.")
         return 0, 0, None
     # Determine the latest checkpoint (highest epoch number)
     latest_ckpt = max(ckpt_files, key=lambda f: int(f.split("_")[-1].split(".")[0]))
@@ -146,12 +168,12 @@ def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
     checkpoint_config = state.get("config", {})
 
     if checkpoint_config != current_config:
-        print("Configuration differences between checkpoint and current run:")
+        logger.warning("Configuration differences between checkpoint and current run:")
         for key in set(checkpoint_config.keys()).union(current_config.keys()):
             if checkpoint_config.get(key) != current_config.get(key):
-                print(f"  {key}: checkpoint={checkpoint_config.get(key)}, current={current_config.get(key)}")
-        print("Warning: Configuration mismatch. Skipping checkpoint loading.")
-        return 0, 0, None  # Start fresh
+                logger.warning(f"  {key}: checkpoint={checkpoint_config.get(key)}, current={current_config.get(key)}")
+        logger.warning("Configuration mismatch. Skipping checkpoint loading.")
+        return 0, 0, None
     
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
@@ -162,7 +184,7 @@ def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
     global_step = state.get("global_step", 0)
     wandb_run_id = state.get("wandb_run_id", None)
 
-    print(f"Loaded checkpoint from {checkpoint_path}, resuming from epoch {start_epoch} with global_step {global_step}")
+    logger.info(f"Loaded checkpoint from {checkpoint_path}, resuming from epoch {start_epoch} with global_step {global_step}")
 
     return start_epoch, global_step, wandb_run_id
 
@@ -213,7 +235,7 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
 
         progress_bar.set_postfix(g_loss=g_loss.item(), d_loss=d_loss.item())
 
-        if i % config["log_interval"] == 0:
+        if config.get("log_interval", -1) != -1 and i % config["log_interval"] == 0:
             wandb.log({
                 "batch_g_loss": g_loss.item(),
                 "batch_d_loss": d_loss.item(),
@@ -232,6 +254,7 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
         "epoch": epoch
     }, step=global_step)
     
+    logger.info(f"Epoch {epoch} finished: avg_g_loss={avg_g_loss:.4f}, avg_d_loss={avg_d_loss:.4f}")
     return global_step
 
 
@@ -307,14 +330,16 @@ def main(config):
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
-    for epoch in range(start_epoch, config["epochs"]):
-        global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
-        
-        if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
-            evaluate(generator, device, config, step=global_step)
-            save_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
-
-    wandb.finish()
+    try:
+        for epoch in range(start_epoch, config["epochs"]):
+            global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
+            
+            if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
+                evaluate(generator, device, config, step=global_step)
+                save_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
+    finally:
+        wandb.finish()
+        logger.info("WandB run finished.")
 
 
 # ------------------------------
