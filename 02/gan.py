@@ -198,7 +198,7 @@ def main(config):
     for epoch in range(start_epoch, config["epochs"]):
         global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
 
-        if (epoch + 1) % config["checkpoint_interval"] == 0:
+        if epoch % config["checkpoint_interval"] == 0:
             evaluate(generator, device, config, step=global_step)
             save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
 
