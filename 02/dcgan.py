@@ -1,15 +1,17 @@
+import argparse
 import datetime
 import os
-import argparse
-import yaml
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
 import torchvision
-from torchvision import datasets, transforms
 import wandb
+import yaml
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 from tqdm import tqdm
+
 
 # ------------------------------
 # Define the Generator Network (DCGAN)
