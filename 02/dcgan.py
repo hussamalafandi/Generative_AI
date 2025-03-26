@@ -82,10 +82,11 @@ class Discriminator(nn.Module):
 # ------------------------------
 # Checkpoint Saving & Loading
 # ------------------------------
-def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch, config):
+def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     state = {
         "epoch": epoch,
+        "global_step": global_step,  # Save the current global step
         "generator_state_dict": generator.state_dict(),
         "discriminator_state_dict": discriminator.state_dict(),
         "optimizer_G_state_dict": optimizer_G.state_dict(),
@@ -110,11 +111,12 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
     optimizer_D.load_state_dict(state["optimizer_D_state_dict"])
 
     start_epoch = state["epoch"] + 1
+    global_step = state.get("global_step", 0)
     wandb_run_id = state.get("wandb_run_id", None)
 
-    print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch}")
+    print(f"Loaded checkpoint from {path}, resuming from epoch {start_epoch} with global_step {global_step}")
 
-    return start_epoch, wandb_run_id
+    return start_epoch, global_step, wandb_run_id
 
 # ------------------------------
 # Training Epoch Function
@@ -191,7 +193,7 @@ def get_dataloader(config):
     dataset = datasets.CelebA(root=config["data_root"], split="train", transform=transform, download=True)
     
     # Use a subset of the dataset
-    subset_size = config.get("subset_size", len(dataset))  # Default to full dataset if not specified
+    subset_size = config.get("subset_size", len(dataset))
     indices = torch.randperm(len(dataset))[:subset_size]
     subset = torch.utils.data.Subset(dataset, indices)
     
@@ -216,20 +218,22 @@ def main(config):
 
     start_epoch = 0
     run_id = None
+    global_step = 0
     if os.path.exists(config["checkpoint_path"]):
-        start_epoch, run_id = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
+        start_epoch, global_step, run_id = load_checkpoint(
+            config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config
+        )
 
     wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
-    global_step = start_epoch * len(dataloader)
-
     for epoch in range(start_epoch, config["epochs"]):
         global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
-        if epoch % config["checkpoint_interval"] == 0:
+        
+        if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
             evaluate(generator, device, config, step=global_step)
-            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
+            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
 
     wandb.finish()
 
