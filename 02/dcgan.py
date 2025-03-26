@@ -11,6 +11,7 @@ import yaml
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
+from pprint import pprint
 
 
 # ------------------------------
@@ -107,11 +108,17 @@ def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, ep
 
 def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
     state = torch.load(path, map_location=device)
+    pprint(state.keys())
     
     checkpoint_config = state.get("config", {})
 
     if checkpoint_config != current_config:
-        raise ValueError("Configuration mismatch between checkpoint and current run.")
+        print("Configuration differences between checkpoint and current run:")
+        for key in set(checkpoint_config.keys()).union(current_config.keys()):
+            if checkpoint_config.get(key) != current_config.get(key):
+                print(f"  {key}: checkpoint={checkpoint_config.get(key)}, current={current_config.get(key)}")
+        # raise ValueError("Configuration mismatch between checkpoint and current run.")
+        print("Warning: Configuration mismatch between checkpoint and current run. Proceeding with caution.")
     
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
