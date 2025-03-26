@@ -2,6 +2,7 @@
 dataset: "CELEBA"
 data_root: "../data"
 subset_size: 50000  # number of images to use for training
+num_workers: 4      # number of workers for data loading
 
 # Training configuration
 batch_size: 128
