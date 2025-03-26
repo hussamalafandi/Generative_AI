@@ -22,6 +22,7 @@ ndf: 64              # discriminator feature map size
 log_interval: 100
 checkpoint_interval: 5
 checkpoint_path: "models/DCGAN_CelebA/gan_checkpoint.pth"
+resume_training: true
 wandb_project: "DCGAN_CelebA"
 
 # Evaluation

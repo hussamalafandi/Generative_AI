@@ -1,6 +1,8 @@
 import argparse
 import datetime
+import hashlib
 import os
+from pprint import pprint
 
 import torch
 import torch.nn as nn
@@ -11,7 +13,6 @@ import yaml
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
-from pprint import pprint
 
 
 # ------------------------------
@@ -84,6 +85,17 @@ class Discriminator(nn.Module):
         return self.main(input).view(-1, 1).squeeze(1)
 
 # ------------------------------
+# Helper: Generate a unique checkpoint filename based on key hyperparameters
+# ------------------------------
+def generate_checkpoint_path(config):
+    # Create a hash from some critical hyperparameters to uniquely identify the experiment.
+    key_params = f"{config['lr']}_{config['batch_size']}_{config['latent_dim']}_{config['ngf']}_{config['ndf']}"
+    config_hash = hashlib.md5(key_params.encode()).hexdigest()[:8]
+    base_path = config.get("checkpoint_dir", "checkpoints")
+    os.makedirs(base_path, exist_ok=True)
+    return os.path.join(base_path, f"dcgan_{config_hash}.pth")
+
+# ------------------------------
 # Checkpoint Saving & Loading
 # ------------------------------
 def save_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
@@ -117,8 +129,8 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
         for key in set(checkpoint_config.keys()).union(current_config.keys()):
             if checkpoint_config.get(key) != current_config.get(key):
                 print(f"  {key}: checkpoint={checkpoint_config.get(key)}, current={current_config.get(key)}")
-        # raise ValueError("Configuration mismatch between checkpoint and current run.")
-        print("Warning: Configuration mismatch between checkpoint and current run. Proceeding with caution.")
+        print("Warning: Configuration mismatch. Skipping checkpoint loading.")
+        return 0, 0, None  # Return defaults to start fresh
     
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
@@ -252,14 +264,15 @@ def main(config):
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     
     dataloader = get_dataloader(config)
-
+    
+    # Use a unique checkpoint file name based on hyperparameters
+    checkpoint_path = generate_checkpoint_path(config)
+    
     start_epoch = 0
     run_id = None
     global_step = 0
-    if os.path.exists(config["checkpoint_path"]):
-        start_epoch, global_step, run_id = load_checkpoint(
-            config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config
-        )
+    if os.path.exists(checkpoint_path) and config.get("resume_training", True):
+        start_epoch, global_step, run_id = load_checkpoint(checkpoint_path, generator, discriminator, optimizer_G, optimizer_D, device, config)
 
     # Generate a meaningful run name if not provided in config
     run_name = generate_run_name(config)
@@ -274,7 +287,7 @@ def main(config):
         
         if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
             evaluate(generator, device, config, step=global_step)
-            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
+            save_checkpoint(checkpoint_path, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
 
     wandb.finish()
 
