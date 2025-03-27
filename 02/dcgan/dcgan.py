@@ -125,7 +125,7 @@ def generate_checkpoint_folder(config):
 # ------------------------------
 # Checkpoint Saving & Loading
 # ------------------------------
-def save_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config):
+def save_checkpoint(folder, generator, discriminator, optimizer_g, optimizer_d, epoch, global_step, config):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     checkpoint_filename = f"ckpt_epoch_{epoch}_{timestamp}.pth"
     checkpoint_path = os.path.join(folder, checkpoint_filename)
@@ -134,8 +134,8 @@ def save_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
         "global_step": global_step,
         "generator_state_dict": generator.state_dict(),
         "discriminator_state_dict": discriminator.state_dict(),
-        "optimizer_G_state_dict": optimizer_G.state_dict(),
-        "optimizer_D_state_dict": optimizer_D.state_dict(),
+        "optimizer_g_state_dict": optimizer_g.state_dict(),
+        "optimizer_d_state_dict": optimizer_d.state_dict(),
         "wandb_run_id": wandb.run.id if wandb.run else None,
         "config": config
     }
@@ -153,7 +153,7 @@ def save_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
     wandb.log_artifact(artifact)
 
 
-def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, device, current_config):
+def load_checkpoint(folder, generator, discriminator, optimizer_g, optimizer_d, device, current_config):
     # Find all checkpoint files in the folder
     ckpt_files = [f for f in os.listdir(folder) if f.startswith("ckpt_epoch_") and f.endswith(".pth")]
     if not ckpt_files:
@@ -177,8 +177,8 @@ def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
     
     generator.load_state_dict(state["generator_state_dict"])
     discriminator.load_state_dict(state["discriminator_state_dict"])
-    optimizer_G.load_state_dict(state["optimizer_G_state_dict"])
-    optimizer_D.load_state_dict(state["optimizer_D_state_dict"])
+    optimizer_g.load_state_dict(state["optimizer_g_state_dict"])
+    optimizer_d.load_state_dict(state["optimizer_d_state_dict"])
 
     start_epoch = state["epoch"] + 1
     global_step = state.get("global_step", 0)
@@ -192,7 +192,7 @@ def load_checkpoint(folder, generator, discriminator, optimizer_G, optimizer_D, 
 # ------------------------------
 # Training Epoch Function
 # ------------------------------
-def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step):
+def train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, device, config, epoch, global_step):
     generator.train()
     discriminator.train()
     
@@ -213,22 +213,22 @@ def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, 
         # -----------------
         #  Train Generator
         # -----------------
-        optimizer_G.zero_grad()
+        optimizer_g.zero_grad()
         noise = torch.randn(batch_size, config["latent_dim"], 1, 1, device=device)
         gen_imgs = generator(noise)
         g_loss = F.binary_cross_entropy(discriminator(gen_imgs), valid)
         g_loss.backward()
-        optimizer_G.step()
+        optimizer_g.step()
 
         # ---------------------
         #  Train Discriminator
         # ---------------------
-        optimizer_D.zero_grad()
+        optimizer_d.zero_grad()
         real_loss = F.binary_cross_entropy(discriminator(imgs), valid)
         fake_loss = F.binary_cross_entropy(discriminator(gen_imgs.detach()), fake)
         d_loss = (real_loss + fake_loss) / 2
         d_loss.backward()
-        optimizer_D.step()
+        optimizer_d.step()
 
         total_g_loss += g_loss.item()
         total_d_loss += d_loss.item()
@@ -288,7 +288,7 @@ def get_dataloader(config):
     indices = torch.randperm(len(dataset))[:subset_size]
     subset = torch.utils.data.Subset(dataset, indices)
     
-    return DataLoader(subset, batch_size=config["batch_size"], shuffle=True)
+    return DataLoader(subset, batch_size=config["batch_size"], shuffle=True, num_workers=0)
 
 
 def generate_run_name(config):
@@ -308,8 +308,8 @@ def main(config):
     # Initialize models and optimizers
     generator = Generator(config).to(device)
     discriminator = Discriminator(config).to(device)
-    optimizer_G = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
+    optimizer_g = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
+    optimizer_d = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     
     dataloader = get_dataloader(config)
     
@@ -320,7 +320,7 @@ def main(config):
     run_id = None
     global_step = 0
     if os.path.exists(checkpoint_folder) and config.get("resume_training", True):
-        start_epoch, global_step, run_id = load_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, device, config)
+        start_epoch, global_step, run_id = load_checkpoint(checkpoint_folder, generator, discriminator, optimizer_g, optimizer_d, device, config)
 
     # Generate a meaningful run name if not provided in config
     run_name = generate_run_name(config)
@@ -332,11 +332,11 @@ def main(config):
 
     try:
         for epoch in range(start_epoch, config["epochs"]):
-            global_step = train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step)
+            global_step = train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, device, config, epoch, global_step)
             
             if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
                 evaluate(generator, device, config, step=global_step)
-                save_checkpoint(checkpoint_folder, generator, discriminator, optimizer_G, optimizer_D, epoch, global_step, config)
+                save_checkpoint(checkpoint_folder, generator, discriminator, optimizer_g, optimizer_d, epoch, global_step, config)
     finally:
         wandb.finish()
         logger.info("WandB run finished.")
