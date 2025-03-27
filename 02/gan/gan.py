@@ -14,9 +14,9 @@ from tqdm import tqdm
 # Define the Generator Network
 # ------------------------------
 class Generator(nn.Module):
-    def __init__(self, config):
+    def __init__(self, latent_dim):
         super(Generator, self).__init__()
-        self.latent_dim = config["latent_dim"]
+        self.latent_dim = latent_dim
         self.net = nn.Sequential(
             nn.Linear(self.latent_dim, 128),
             nn.ReLU(True),
@@ -39,7 +39,7 @@ class Generator(nn.Module):
 # Define the Discriminator Network
 # ------------------------------
 class Discriminator(nn.Module):
-    def __init__(self, config):
+    def __init__(self):
         super(Discriminator, self).__init__()
         self.net = nn.Sequential(
             nn.Linear(28*28, 512),
