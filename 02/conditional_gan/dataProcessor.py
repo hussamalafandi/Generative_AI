@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 
 def get_dataloader(config):
     transform = transforms.Compose([
-        transforms.Resize(config["image_size"]), # Resize to 64x64 to match the DCGAN architecture
+        transforms.Resize(config["image_size"]),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
     ])

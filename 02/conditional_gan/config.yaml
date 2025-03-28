@@ -4,7 +4,7 @@ data_root: "../data"
 subset_size: 60000  # number of images to use for training
 num_workers: 4      # number of workers for data loading
 num_classes: 10     # number of classes in the dataset
-image_size: 64      # size of the input images (28x28 for MNIST)
+image_size: 28      # size of the input images (28x28 for MNIST)
 embed_dim: 50       # dimension of the class embedding
 
 # Training configuration
@@ -17,7 +17,6 @@ use_cuda: true
 
 # Model configuration
 latent_dim: 100
-image_size: 64       # output image size (64x64)
 nc: 1                # number of channels (1 for grayscale)
 ngf: 64              # generator feature map size
 ndf: 64              # discriminator feature map size
