@@ -2,7 +2,6 @@ import datetime
 import hashlib
 import logging
 import os
-from pprint import pprint
 
 import torch
 import wandb
@@ -21,14 +20,6 @@ def generate_checkpoint_folder(config):
     folder_name = f"dcgan_lr{config['lr']}_bs{config['batch_size']}_latent{config['latent_dim']}_ngf{config['ngf']}_ndf{config['ndf']}_{config_hash}"
     folder_path = os.path.join(base_path, folder_name)
     os.makedirs(folder_path, exist_ok=True)
-
-    # Set up a file handler for logging metadata in this folder
-    log_file = os.path.join(folder_path, "experiment.log")
-    file_handler = logging.FileHandler(log_file)
-    file_formatter = logging.Formatter(
-        '[%(asctime)s] %(levelname)s: %(message)s')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
 
     logger.info(f"Checkpoint folder created at: {folder_path}")
     return folder_path
@@ -78,7 +69,6 @@ def load_checkpoint(folder, generator, discriminator, optimizer_g, optimizer_d, 
         f.split("_")[-1].split(".")[0]))
     checkpoint_path = os.path.join(folder, latest_ckpt)
     state = torch.load(checkpoint_path, map_location=device)
-    pprint(state.keys())
 
     checkpoint_config = state.get("config", {})
 

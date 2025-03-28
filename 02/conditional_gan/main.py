@@ -27,8 +27,11 @@ def main(config):
 
     # Set up a logger that writes to a file in the checkpoint folder.
     log_file = os.path.join(checkpoint_folder, "experiment.log")
-    logger = setup_logger(__name__, log_file)
+    logger = setup_logger(log_file)
+
+    logger.info("\n" + "=" * 80)
     logger.info("Logger is set up.")
+
 
     # Initialize models and optimizers
     generator = Generator(config).to(device)
@@ -68,6 +71,7 @@ def main(config):
     finally:
         wandb.finish()
         logger.info("WandB run finished.")
+        logger.info("\n" + "=" * 80 + "\n\n")
 
 
 # ------------------------------
