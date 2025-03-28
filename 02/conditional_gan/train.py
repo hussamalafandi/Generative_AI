@@ -88,7 +88,28 @@ def evaluate(generator, device, config, step):
             0, config["num_classes"], (config["num_eval_samples"],), device=device)
         # Generate images
         gen_imgs = generator(noise, labels)
-        grid = torchvision.utils.make_grid(gen_imgs, nrow=4, normalize=True)
-        wandb.log({"generated_images": [wandb.Image(
-            grid, caption="Generated Images")]}, step=step)
+        
+        import matplotlib.pyplot as plt
+
+        # Select five random indices (or use the first five if not enough samples)
+        if config["num_eval_samples"] >= 5:
+            indices = torch.randperm(config["num_eval_samples"])[:5]
+        else:
+            indices = torch.arange(config["num_eval_samples"])
+
+        fig, axes = plt.subplots(1, 5, figsize=(15, 3))
+        for ax, idx in zip(axes, indices):
+            # Get the image and label
+            img = gen_imgs[idx].detach().cpu()  # shape: [C, H, W]
+            label_val = labels[idx].item()
+            # Convert image tensor to numpy array, assuming the tensor is in [0,1] range or normalized
+            img = img.permute(1, 2, 0).numpy()
+            # If images were normalized (e.g., to [-1, 1]), adjust here: img = (img + 1) / 2
+            ax.imshow(img)
+            ax.set_title(str(label_val))
+            ax.axis("off")
+
+        wandb.log({"generated_images": wandb.Image(fig, caption="Generated images")}, step=step)
+        plt.close(fig)
+
     generator.train()
