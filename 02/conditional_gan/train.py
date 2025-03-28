@@ -79,7 +79,7 @@ def train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, 
     return global_step
 
 
-def evaluate(generator, device, config, step):
+def evaluate(generator, device, config, global_step):
     generator.eval()
     with torch.no_grad():
         noise = torch.randn(config["num_eval_samples"],
@@ -105,11 +105,11 @@ def evaluate(generator, device, config, step):
             # Convert image tensor to numpy array, assuming the tensor is in [0,1] range or normalized
             img = img.permute(1, 2, 0).numpy()
             # If images were normalized (e.g., to [-1, 1]), adjust here: img = (img + 1) / 2
-            ax.imshow(img)
+            ax.imshow(img, cmap="gray")
             ax.set_title(str(label_val))
             ax.axis("off")
 
-        wandb.log({"generated_images": wandb.Image(fig, caption="Generated images")}, step=step)
+        wandb.log({"generated_images": wandb.Image(fig, caption="Generated images")}, step=global_step)
         plt.close(fig)
 
     generator.train()

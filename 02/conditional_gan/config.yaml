@@ -27,7 +27,7 @@ checkpoint_interval: 5
 checkpoint_path: "models/cGAN/cgan_checkpoint.pth"
 resume_training: true
 wandb_project: "cGAN-MNIST"
-wandb_mode: "disabled"  # options: "online", "offline", "disabled"
+wandb_mode: "online"  # options: "online", "offline", "disabled"
 
 # Evaluation
 num_eval_samples: 16

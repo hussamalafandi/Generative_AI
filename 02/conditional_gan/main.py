@@ -65,7 +65,7 @@ def main(config):
                                       optimizer_d, dataloader, device, config, epoch, global_step)
 
             if epoch % config["checkpoint_interval"] == 0 or epoch == config["epochs"] - 1:
-                evaluate(generator, device, config, step=global_step)
+                evaluate(generator, device, config, global_step)
                 save_checkpoint(checkpoint_folder, generator, discriminator,
                                 optimizer_g, optimizer_d, epoch, global_step, config)
     finally:
