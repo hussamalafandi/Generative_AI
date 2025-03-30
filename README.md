@@ -2,6 +2,8 @@
 
 A practical, hands-on Generative AI course designed to equip students and professionals with foundational concepts, tools, and skills to build and deploy generative AI systems in industry environments.
 
+> **Note**: This project is still under development, and not all units are published yet. Stay tuned for updates!
+
 This repository provides structured materials, tutorials, exercises, and project resources covering core generative AI topics including autoencoders, GANs, diffusion models, transformers, multimodal systems, and more. 
 
 All code and resources are provided under an open-source MIT License.
