@@ -200,7 +200,8 @@ def main(config):
         start_epoch, run_id = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config)
 
     # Resume the WandB run if possible. Using resume="allow" tells WandB to try to reconnect to the previous run.
-    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id, settings=wandb.Settings(log_code=True))
+    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
+    wandb.save(__file__)  # Save the current script to WandB
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
