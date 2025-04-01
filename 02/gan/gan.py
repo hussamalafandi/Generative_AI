@@ -103,16 +103,20 @@ def load_checkpoint(path, generator, discriminator, optimizer_G, optimizer_D, de
 def train_epoch(generator, discriminator, optimizer_G, optimizer_D, dataloader, device, config, epoch, global_step):
     generator.train()
     discriminator.train()
-    
+
+    # Precompute adversarial ground truths
+    valid = torch.ones(config["batch_size"], 1, device=device)
+    fake = torch.zeros(config["batch_size"], 1, device=device)
+
     # Wrap dataloader with tqdm for progress bar
     progress_bar = tqdm(dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
     for i, (imgs, _) in enumerate(progress_bar):
         batch_size = imgs.size(0)
         imgs = imgs.to(device)
 
-        # Define adversarial ground truths
-        valid = torch.ones(batch_size, 1, device=device)
-        fake = torch.zeros(batch_size, 1, device=device)
+        # Adjust valid and fake tensors for the current batch size
+        valid = valid[:batch_size]
+        fake = fake[:batch_size]
 
         # -----------------
         #  Train Generator
@@ -174,7 +178,13 @@ def get_dataloader(config):
         transforms.Normalize((0.5,), (0.5,))
     ])
     dataset = datasets.MNIST(root=config["data_root"], train=True, transform=transform, download=True)
-    return DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+    return DataLoader(
+        dataset, 
+        batch_size=config["batch_size"], 
+        shuffle=True, 
+        num_workers=config.get("num_workers", 4),  # Use multiple workers
+        pin_memory=True  # Optimize data transfer to GPU
+    )
 
 # ------------------------------
 # Main Training Function
@@ -183,11 +193,22 @@ def main(config):
     if config["use_cuda"] and not torch.cuda.is_available():
         raise RuntimeError("CUDA is not available, but 'use_cuda' is set to True in the configuration.")
     
+    # Set random seed for reproducibility
+    seed = config.get("seed", 42)  # Default seed is 42 if not provided
+    torch.manual_seed(seed)
+    if config["use_cuda"]:
+        torch.cuda.manual_seed_all(seed)
+    import random
+    random.seed(seed)
+    import numpy as np
+    np.random.seed(seed)
+
     device = torch.device("cuda" if config["use_cuda"] and torch.cuda.is_available() else "cpu")
 
     # Initialize models and optimizers
     generator = Generator(config["latent_dim"]).to(device)
     discriminator = Discriminator().to(device)
+
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     
@@ -202,8 +223,7 @@ def main(config):
     # Resume the WandB run if possible. Using resume="allow" tells WandB to try to reconnect to the previous run.
     wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
     wandb.save(__file__)  # Save the current script to WandB
-    wandb.watch(generator, log="all")
-    wandb.watch(discriminator, log="all")
+    wandb.watch([generator, discriminator], log="all")  # Combine watch calls
 
     # Initialize global step (set based on previous training if resuming)
     global_step = start_epoch * len(dataloader)
