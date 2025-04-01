@@ -19,13 +19,16 @@ class Generator(nn.Module):
         self.latent_dim = latent_dim
         self.net = nn.Sequential(
             nn.Linear(self.latent_dim, 128),
-            nn.ReLU(True),
+            nn.ReLU(),
+
             nn.Linear(128, 256),
             nn.BatchNorm1d(256),
-            nn.ReLU(True),
+            nn.ReLU(),
+
             nn.Linear(256, 512),
             nn.BatchNorm1d(512),
-            nn.ReLU(True),
+            nn.ReLU(),
+
             nn.Linear(512, 28*28),
             nn.Tanh()
         )
@@ -43,9 +46,11 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.net = nn.Sequential(
             nn.Linear(28*28, 512),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.LeakyReLU(0.2),
+
             nn.Linear(512, 256),
-            nn.LeakyReLU(0.2, inplace=True),
+            nn.LeakyReLU(0.2),
+            
             nn.Linear(256, 1),
             nn.Sigmoid()
         )
@@ -179,10 +184,10 @@ def main(config):
         raise RuntimeError("CUDA is not available, but 'use_cuda' is set to True in the configuration.")
     
     device = torch.device("cuda" if config["use_cuda"] and torch.cuda.is_available() else "cpu")
-    
+
     # Initialize models and optimizers
-    generator = Generator(config).to(device)
-    discriminator = Discriminator(config).to(device)
+    generator = Generator(config["latent_dim"]).to(device)
+    discriminator = Discriminator().to(device)
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=config["lr"], betas=(config["beta1"], 0.999), weight_decay=config["weight_decay"])
     
@@ -192,10 +197,10 @@ def main(config):
     start_epoch = 0
     run_id = None
     if os.path.exists(config["checkpoint_path"]):
-        start_epoch, run_id = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device)
+        start_epoch, run_id = load_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, device, config)
 
     # Resume the WandB run if possible. Using resume="allow" tells WandB to try to reconnect to the previous run.
-    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id)
+    wandb.init(project=config["wandb_project"], config=config, resume="allow", id=run_id, settings=wandb.Settings(log_code=True))
     wandb.watch(generator, log="all")
     wandb.watch(discriminator, log="all")
 
@@ -208,9 +213,14 @@ def main(config):
 
         if epoch % config["checkpoint_interval"] == 0:
             evaluate(generator, device, config, step=global_step)
-            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch)
+            save_checkpoint(config["checkpoint_path"], generator, discriminator, optimizer_G, optimizer_D, epoch, config)
 
     wandb.finish()
+
+def get_config(config_path):
+    """Load configuration from a YAML file."""
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 # ------------------------------
 # Main Execution: Load Config & Start Training
@@ -220,8 +230,6 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="config.yaml", help="Path to YAML configuration file")
     args = parser.parse_args()
 
-    # Load hyperparameters from YAML config file
-    with open(args.config, "r") as f:
-        config = yaml.safe_load(f)
+    config = get_config(args.config)
 
     main(config)
