@@ -1,13 +1,13 @@
 use_cuda: true
-data_root: "./data"
+data_root: "../../data"
 batch_size: 64
 epochs: 50
-lr: 0.0002
-beta1: 0.5
+lr: 0.0001
+beta1: 0.3
 latent_dim: 100
 log_interval: 100        # number of batches between logging updates
 checkpoint_interval: 10   # save checkpoint every N epochs
 checkpoint_path: "./models/gan_checkpoint.pth"
-wandb_project: "GAN_Project"
+wandb_project: "GAN_MNIST"
 num_eval_samples: 16     # number of samples to generate for evaluation
-weight_decay: 0.0001     # weight decay for optimizers
+weight_decay: 0.00001     # weight decay for optimizers
