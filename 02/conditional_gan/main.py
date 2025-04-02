@@ -9,7 +9,7 @@ from checkpoint import (generate_checkpoint_folder, load_checkpoint,
 from logger import setup_logger
 from c_gan import Discriminator, Generator
 from train import evaluate, train_epoch
-from utils import generate_run_name
+from utils import generate_run_name, get_config
 
 from dataProcessor import get_dataloader
 
@@ -83,7 +83,6 @@ if __name__ == "__main__":
                         help="Path to YAML configuration file")
     args = parser.parse_args()
 
-    with open(args.config, "r") as f:
-        config = yaml.safe_load(f)
+    config = get_config(args.config)
 
     main(config)

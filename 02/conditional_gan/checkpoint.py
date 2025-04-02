@@ -10,6 +10,7 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
 def get_dict_hash(dictionary):
     # Convert the dictionary to a JSON string (sorted keys ensure consistent hash)
     dict_str = json.dumps(dictionary, sort_keys=True)
@@ -17,9 +18,6 @@ def get_dict_hash(dictionary):
     return hashlib.sha256(dict_str.encode()).hexdigest()[:8]
 
 def generate_checkpoint_folder(config):
-    # Create a string from key hyperparameters
-    # key_params = f"{config['lr']}_{config['batch_size']}_{config['latent_dim']}_{config['ngf']}_{config['ndf']}"
-
     config_hash = get_dict_hash(config)
     base_path = config.get("checkpoint_dir", "checkpoints")
     os.makedirs(base_path, exist_ok=True)
