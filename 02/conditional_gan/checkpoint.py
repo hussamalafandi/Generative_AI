@@ -1,12 +1,13 @@
 import datetime
 import hashlib
+import json
 import logging
 import os
 
 import torch
-import wandb
 import yaml
-import json
+
+import wandb
 
 logger = logging.getLogger(__name__)
 
