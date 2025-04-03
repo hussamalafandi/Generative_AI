@@ -17,7 +17,7 @@ def get_config(config_path):
         return yaml.safe_load(f)
 
 
-def set_random_seed(seed):
+def set_random_seed(seed=42):
     """Set random seed for reproducibility."""
 
     random.seed(seed)
