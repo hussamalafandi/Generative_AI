@@ -2,16 +2,15 @@ import argparse
 import os
 
 import torch
-import wandb
-import yaml
+from c_gan import Discriminator, Generator
 from checkpoint import (generate_checkpoint_folder, load_checkpoint,
                         save_checkpoint)
+from dataProcessor import get_dataloader
 from logger import setup_logger
-from c_gan import Discriminator, Generator
 from train import evaluate, train_epoch
 from utils import generate_run_name, get_config, set_random_seed
 
-from dataProcessor import get_dataloader
+import wandb
 
 
 def main(config):
@@ -35,7 +34,6 @@ def main(config):
     logger.info("\n" + "=" * 80)
     logger.info("Logger is set up.")
 
-
     # Initialize models and optimizers
     generator = Generator(config).to(device)
     discriminator = Discriminator(config).to(device)
@@ -58,7 +56,8 @@ def main(config):
     tags = config.get("tags", [])
 
     wandb.init(project=config["wandb_project"], config=config,
-               resume="allow", id=run_id, name=run_name, tags=tags, mode=config["wandb_mode"])
+               resume="allow", id=run_id, name=run_name, tags=tags, mode=config["wandb_mode"], save_code=True)
+    wandb.run.log_code('.')
     wandb.watch([generator, discriminator], log="all")  # Combine watch calls
 
     try:
@@ -70,6 +69,20 @@ def main(config):
                 evaluate(generator, device, config, global_step)
                 save_checkpoint(checkpoint_folder, generator, discriminator,
                                 optimizer_g, optimizer_d, epoch, global_step, config)
+
+    except KeyboardInterrupt:
+        logger.error(
+            "Training interrupted by user (KeyboardInterrupt).", exc_info=True)
+        wandb.log(
+            {"error": "Training interrupted by user (KeyboardInterrupt)."}, step=global_step)
+        raise
+
+    except Exception as e:
+        logger.error(
+            f"An error occurred during training: {str(e)}", exc_info=True)
+        wandb.log({"error": str(e)}, step=global_step)
+        raise
+
     finally:
         wandb.finish()
         logger.info("WandB run finished.")

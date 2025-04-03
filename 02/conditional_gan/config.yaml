@@ -1,6 +1,6 @@
 # Dataset configuration
 dataset: "MNIST"
-data_root: "../data"
+data_root: "../../data"
 subset_size: 60000  # number of images to use for training
 num_workers: 4      # number of workers for data loading
 num_classes: 10     # number of classes in the dataset
@@ -14,6 +14,7 @@ lr: 0.0002
 beta1: 0.5
 weight_decay: 0
 use_cuda: true
+seed: 42
 
 # Model configuration
 latent_dim: 100
@@ -24,7 +25,7 @@ ndf: 64              # discriminator feature map size
 # Logging and checkpointing
 log_interval: 100
 checkpoint_interval: 5
-checkpoint_path: "models/cGAN/cgan_checkpoint.pth"
+checkpoint_dir: "./models/cGAN/"
 resume_training: true
 wandb_project: "cGAN-MNIST"
 wandb_mode: "online"  # options: "online", "offline", "disabled"
