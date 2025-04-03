@@ -16,8 +16,8 @@ def train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, 
     n_batches = 0
 
     # Precompute adversarial ground truths
-    valid = torch.ones(config["batch_size"], 1, device=device)
-    fake = torch.zeros(config["batch_size"], 1, device=device)
+    valid = torch.ones(config["batch_size"], device=device)
+    fake = torch.zeros(config["batch_size"], device=device)
 
     progress_bar = tqdm(dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
     for i, (imgs, labels) in enumerate(progress_bar):
