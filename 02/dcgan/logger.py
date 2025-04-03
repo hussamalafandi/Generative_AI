@@ -3,7 +3,7 @@ import logging
 import os
 
 
-def setup_logger(name: str, log_file: str, level: int = logging.INFO) -> logging.Logger:
+def setup_logger(log_file: str, level: int = logging.INFO) -> logging.Logger:
     """
     Set up and return a logger with a file handler and console handler.
 
@@ -25,7 +25,7 @@ def setup_logger(name: str, log_file: str, level: int = logging.INFO) -> logging
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
 
-    logger = logging.getLogger(name)
+    logger = logging.getLogger()
     logger.setLevel(level)
 
     # Avoid adding handlers multiple times in interactive environments.

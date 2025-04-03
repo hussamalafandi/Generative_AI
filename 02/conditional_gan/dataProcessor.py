@@ -12,4 +12,4 @@ def get_dataloader(config):
     dataset = datasets.MNIST(
         root=config["data_root"], train=True, transform=transform, download=True)
 
-    return DataLoader(dataset, batch_size=config["batch_size"], shuffle=True, num_workers=config["num_workers"])
+    return DataLoader(dataset, batch_size=config["batch_size"], shuffle=True, num_workers=config["num_workers"], pin_memory=True)

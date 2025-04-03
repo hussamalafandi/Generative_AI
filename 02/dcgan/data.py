@@ -19,4 +19,4 @@ def get_dataloader(config):
     indices = torch.randperm(len(dataset))[:subset_size]
     subset = torch.utils.data.Subset(dataset, indices)
 
-    return DataLoader(subset, batch_size=config["batch_size"], shuffle=True, num_workers=config["num_workers"])
+    return DataLoader(subset, batch_size=config["batch_size"], shuffle=True, num_workers=config["num_workers"], pin_memory=True)

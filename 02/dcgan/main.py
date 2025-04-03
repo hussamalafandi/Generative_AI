@@ -2,14 +2,14 @@ import argparse
 import os
 
 import torch
-import wandb
-import yaml
 from checkpoint import (generate_checkpoint_folder, load_checkpoint,
                         save_checkpoint)
 from logger import setup_logger
 from models import Discriminator, Generator
 from train import evaluate, train_epoch
-from utils import generate_run_name
+from utils import generate_run_name, get_config, set_random_seed
+
+import wandb
 
 from .data import get_dataloader
 
@@ -19,6 +19,9 @@ def main(config):
         raise RuntimeError(
             "CUDA is not available, but 'use_cuda' is set to True.")
 
+    # Set random seed for reproducibility
+    set_random_seed(config["seed"])
+
     device = torch.device(
         "cuda" if config["use_cuda"] and torch.cuda.is_available() else "cpu")
 
@@ -27,7 +30,9 @@ def main(config):
 
     # Set up a logger that writes to a file in the checkpoint folder.
     log_file = os.path.join(checkpoint_folder, "experiment.log")
-    logger = setup_logger(__name__, log_file)
+    logger = setup_logger(log_file)
+
+    logger.info("\n" + "=" * 80)
     logger.info("Logger is set up.")
 
     # Initialize models and optimizers
@@ -53,8 +58,8 @@ def main(config):
 
     wandb.init(project=config["wandb_project"], config=config,
                resume="allow", id=run_id, name=run_name, tags=tags)
-    wandb.watch(generator, log="all")
-    wandb.watch(discriminator, log="all")
+
+    wandb.watch([generator, discriminator], log="all")
 
     try:
         for epoch in range(start_epoch, config["epochs"]):
@@ -68,6 +73,7 @@ def main(config):
     finally:
         wandb.finish()
         logger.info("WandB run finished.")
+        logger.info("\n" + "=" * 80 + "\n\n")
 
 
 # ------------------------------
@@ -79,7 +85,6 @@ if __name__ == "__main__":
                         help="Path to YAML configuration file")
     args = parser.parse_args()
 
-    with open(args.config, "r") as f:
-        config = yaml.safe_load(f)
+    config = get_config(args.config)
 
     main(config)

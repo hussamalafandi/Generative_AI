@@ -9,7 +9,7 @@ from checkpoint import (generate_checkpoint_folder, load_checkpoint,
 from logger import setup_logger
 from c_gan import Discriminator, Generator
 from train import evaluate, train_epoch
-from utils import generate_run_name, get_config
+from utils import generate_run_name, get_config, set_random_seed
 
 from dataProcessor import get_dataloader
 
@@ -18,6 +18,9 @@ def main(config):
     if config["use_cuda"] and not torch.cuda.is_available():
         raise RuntimeError(
             "CUDA is not available, but 'use_cuda' is set to True.")
+
+    # Set the random seed
+    set_random_seed(config["seed"])
 
     device = torch.device(
         "cuda" if config["use_cuda"] and torch.cuda.is_available() else "cpu")
@@ -56,8 +59,7 @@ def main(config):
 
     wandb.init(project=config["wandb_project"], config=config,
                resume="allow", id=run_id, name=run_name, tags=tags, mode=config["wandb_mode"])
-    wandb.watch(generator, log="all")
-    wandb.watch(discriminator, log="all")
+    wandb.watch([generator, discriminator], log="all")  # Combine watch calls
 
     try:
         for epoch in range(start_epoch, config["epochs"]):

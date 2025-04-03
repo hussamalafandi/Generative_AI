@@ -3,7 +3,6 @@ import torch.nn.functional as F
 import wandb
 from tqdm import tqdm
 import logging
-import torchvision
 
 logger = logging.getLogger(__name__)
 
@@ -16,8 +15,11 @@ def train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, 
     total_d_loss = 0.0
     n_batches = 0
 
-    progress_bar = tqdm(
-        dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
+    # Precompute adversarial ground truths
+    valid = torch.ones(config["batch_size"], 1, device=device)
+    fake = torch.zeros(config["batch_size"], 1, device=device)
+
+    progress_bar = tqdm(dataloader, desc=f"Epoch {epoch}/{config['epochs']}", unit="batch", leave=False)
     for i, (imgs, labels) in enumerate(progress_bar):
         imgs = imgs.to(device)
         labels = labels.to(device)
@@ -25,9 +27,9 @@ def train_epoch(generator, discriminator, optimizer_g, optimizer_d, dataloader, 
         batch_size = imgs.size(0)
         n_batches += 1
 
-        # Ground truths
-        valid = torch.ones(batch_size, device=device)
-        fake = torch.zeros(batch_size, device=device)
+        # Adjust valid and fake tensors for the current batch size
+        valid = valid[:batch_size]
+        fake = fake[:batch_size]
 
         # -----------------
         #  Train Generator
