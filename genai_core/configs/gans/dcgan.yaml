@@ -1,0 +1,30 @@
+# Dataset configuration
+dataset: "CELEBA"
+data_root: "../data"
+subset_size: 50000  # number of images to use for training
+num_workers: 4      # number of workers for data loading
+
+# Training configuration
+batch_size: 128
+epochs: 50
+lr: 0.0002
+beta1: 0.5
+weight_decay: 0
+use_cuda: true
+
+# Model configuration
+latent_dim: 100
+image_size: 64       # output image size (64x64)
+nc: 3                # number of channels (3 for RGB)
+ngf: 64              # generator feature map size
+ndf: 64              # discriminator feature map size
+
+# Logging and checkpointing
+log_interval: 100
+checkpoint_interval: 5
+checkpoint_path: "models/DCGAN_CelebA/gan_checkpoint.pth"
+resume_training: true
+wandb_project: "DCGAN_CelebA"
+
+# Evaluation
+num_eval_samples: 16

@@ -488,3 +488,6 @@ data/
 wandb/
 models/
 checkpoints/
+
+!genai_core/data
+!genai_core/models

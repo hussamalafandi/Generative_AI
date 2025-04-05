@@ -1,0 +1,34 @@
+# Dataset configuration
+dataset: "MNIST"
+data_root: "./data"
+subset_size: 60000  # number of images to use for training
+num_workers: 4      # number of workers for data loading
+num_classes: 10     # number of classes in the dataset
+image_size: 28      # size of the input images (28x28 for MNIST)
+embed_dim: 50       # dimension of the class embedding
+
+# Training configuration
+batch_size: 128
+epochs: 50
+lr: 0.0002
+beta1: 0.5
+weight_decay: 0
+use_cuda: true
+seed: 42
+
+# Model configuration
+latent_dim: 100
+nc: 1                # number of channels (1 for grayscale)
+ngf: 64              # generator feature map size
+ndf: 64              # discriminator feature map size
+
+# Logging and checkpointing
+log_interval: 100
+checkpoint_interval: 5
+checkpoint_base_dir: "./models/cGAN/"
+resume_training: true
+wandb_project: "cGAN-MNIST"
+wandb_mode: "online"  # options: "online", "offline", "disabled"
+
+# Evaluation
+num_eval_samples: 16
