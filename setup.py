@@ -6,8 +6,7 @@ setup(
     description="A modular generative AI training framework with PyTorch",
     author="Hussam Alafandi",
     author_email="hosam.alafandi@gmail.com",
-    packages=find_packages(where="genai_core"),
-    package_dir={'': 'genai_core'},
+    packages=find_packages(exclude=["outputs*", "notebooks*", "scripts*"]),
     include_package_data=True,
     install_requires=[
         "torch>=1.10",

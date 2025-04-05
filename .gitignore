@@ -484,10 +484,6 @@ cython_debug/
 .pypirc
 
 .vscode
-data/
+datasets/
 wandb/
-models/
 checkpoints/
-
-!genai_core/data
-!genai_core/models

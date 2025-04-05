@@ -1,6 +1,6 @@
 # Dataset configuration
 dataset: "MNIST"
-data_root: "./data"
+data_root: "./datasets/"
 subset_size: 60000  # number of images to use for training
 num_workers: 4      # number of workers for data loading
 num_classes: 10     # number of classes in the dataset
@@ -25,7 +25,7 @@ ndf: 64              # discriminator feature map size
 # Logging and checkpointing
 log_interval: 100
 checkpoint_interval: 5
-checkpoint_base_dir: "./models/cGAN/"
+checkpoint_base_dir: "./checkpoints/cGAN/"
 resume_training: true
 wandb_project: "cGAN-MNIST"
 wandb_mode: "online"  # options: "online", "offline", "disabled"
