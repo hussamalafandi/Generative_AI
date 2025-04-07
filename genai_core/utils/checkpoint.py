@@ -56,10 +56,10 @@ def save_checkpoint(folder, models, optimizers, epoch, config):
     logger.info(f"Configuration saved at {config_path}")
 
     # Log checkpoint as a WandB artifact with unique naming.
-    artifact = wandb.Artifact(
-        f"model-checkpoint-epoch-{epoch}-{timestamp}", type="model", description=f"Checkpoint at epoch {epoch}")
-    artifact.add_file(checkpoint_path)
-    wandb.log_artifact(artifact)
+    # artifact = wandb.Artifact(
+    #     f"model-checkpoint-epoch-{epoch}-{timestamp}", type="model", description=f"Checkpoint at epoch {epoch}")
+    # artifact.add_file(checkpoint_path)
+    # wandb.log_artifact(artifact)
 
 
 def load_checkpoint(folder, models, optimizers, current_config):

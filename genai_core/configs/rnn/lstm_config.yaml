@@ -1,0 +1,28 @@
+vocab_size: 50000
+embedding_dim: 32
+hidden_dim: 64
+pretrained_embeddings_path: "gpt2"  # Hugging Face model name or path
+freeze_embeddings: false
+
+batch_size: 32
+epochs: 25
+lr: 0.0001
+beta1: 0.5
+checkpoint_interval: 5
+log_interval: 5
+use_cuda: true
+weight_decay: 0.0001
+resume_training: false
+
+dataset_name: "tiny_shakespeare"
+tokenizer_name: "gpt2"
+block_size: 64
+split: "train"
+num_workers: 0
+
+wandb_project: "LSTM_shakespeare"
+wandb_mode: "online"  # values: "online", "offline", "disabled"
+seed: 42
+tags: ["lstm", "language_modeling"]
+checkpoint_base_dir: "./checkpoints/lstm/"
+
