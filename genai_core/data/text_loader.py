@@ -58,7 +58,7 @@ def create_dataloader(
     mlm: bool = False,
     split: str = "train",
     num_workers: int = 4,
-) -> DataLoader:
+) -> tuple[DataLoader, AutoTokenizer]:
     """
     Creates a PyTorch DataLoader for language modeling using Hugging Face datasets and tokenizers.
 
@@ -110,4 +110,4 @@ def create_dataloader(
     )
 
     logger.info("DataLoader created with batch size %d.", batch_size)
-    return dataloader
+    return dataloader, tokenizer
