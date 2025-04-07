@@ -65,6 +65,8 @@ class LSTMTrainer(BaseTrainer):
                     temperature=1.0
                 )
 
+                wandb.log({"evaluation/epoch": epoch})
+
                 # Save checkpoint
                 models = {"model": self.model}
                 optimizers = {"optimizer": self.optimizer}
@@ -135,5 +137,5 @@ class LSTMTrainer(BaseTrainer):
         wandb_table = wandb.Table(columns=["Starting Sequence", "Generated Text"])
         wandb_table.add_data(start_sequence, generated_text)
         wandb.log({"evaluation/generated_text": wandb_table})
-        
+
         return generated_text
