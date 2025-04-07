@@ -3,6 +3,9 @@ from torch.utils.data import DataLoader
 from transformers import AutoTokenizer, DataCollatorForLanguageModeling
 
 from datasets import Dataset, load_dataset
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def tokenize_function(examples, tokenizer, return_special_tokens_mask=True):
@@ -54,7 +57,6 @@ def create_dataloader(
     shuffle: bool = True,
     mlm: bool = False,
     split: str = "train",
-    streaming: bool = False,
     num_workers: int = 4,
 ) -> DataLoader:
     """
@@ -68,18 +70,19 @@ def create_dataloader(
         shuffle (bool): Whether to shuffle the dataset.
         mlm (bool): If True, uses masked language modeling (BERT-style); otherwise, causal LM.
         split (str): Dataset split to use (e.g., "train", "validation").
-        streaming (bool): If True, loads the dataset in streaming mode.
-
+        num_workers (int): Number of subprocesses to use for data loading.
+        
     Returns:
         DataLoader: A PyTorch DataLoader instance for the language modeling task.
     """
-    # Load tokenizer
+
+    logger.info("Initializing tokenizer: %s", tokenizer_name)
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    # Load dataset
-    dataset = load_dataset(dataset_name, split=split, streaming=streaming)
+    logger.info("Loading dataset: %s (split: %s)", dataset_name, split)
+    dataset = load_dataset(dataset_name, split=split)
 
     # Tokenize dataset
     tokenized = dataset.map(
@@ -97,8 +100,7 @@ def create_dataloader(
     # Use collator for padding and label masking
     collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=mlm)
 
-    # Return PyTorch DataLoader
-    return DataLoader(
+    dataloader = DataLoader(
         grouped,
         batch_size=batch_size,
         shuffle=shuffle,
@@ -106,3 +108,6 @@ def create_dataloader(
         num_workers=num_workers,
         pin_memory=True
     )
+
+    logger.info("DataLoader created with batch size %d.", batch_size)
+    return dataloader
