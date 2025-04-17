@@ -25,10 +25,11 @@ This course covers the following topics in depth:
 - **Recurrent Neural Networks (LSTM/GRU)**
 - **Attention Mechanisms & Transformers**
 - **GPT & NanoGPT Implementation**
-- **Fine-tuning Language Models (LoRA, PEFT)**
+- **Training Language Models (HF trainer API)**
 
 ### Advanced Generative Techniques:
 
+- **Fine-tuning LLMs (LoRA, PEFT)**
 - **Retrieval-Augmented Generation (RAG)**
 - **Vision-Language Models (CLIP, DALL-E, Stable Diffusion)**
 - **Generative AI Agents (LangChain, AutoGPT)**
