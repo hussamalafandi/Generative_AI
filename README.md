@@ -32,8 +32,8 @@ This course covers the following topics in depth:
 - **Fine-tuning LLMs**
 - **PEFT (LoRA, QLoRA, Unsloth)**
 - **Retrieval-Augmented Generation (RAG)**
-- **Vision-Language Models (CLIP, DALL-E, Stable Diffusion)**
 - **Generative AI Agents (LangChain, AutoGPT)**
+- **Vision-Language Models (CLIP, DALL-E, Stable Diffusion)**
 - **Evaluation Metrics for Generative Models**
 
 ### Deployment, APIs & Ethical AI:
