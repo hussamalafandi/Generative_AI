@@ -29,7 +29,8 @@ This course covers the following topics in depth:
 
 ### Advanced Generative Techniques:
 
-- **Fine-tuning LLMs (LoRA, PEFT)**
+- **Fine-tuning LLMs**
+- **PEFT (LoRA, QLoRA, Unsloth)**
 - **Retrieval-Augmented Generation (RAG)**
 - **Vision-Language Models (CLIP, DALL-E, Stable Diffusion)**
 - **Generative AI Agents (LangChain, AutoGPT)**
