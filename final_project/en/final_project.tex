@@ -1,0 +1,175 @@
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Final Project: Multimodal Market Analyst AI System}}
+\rfoot{\thepage}
+
+\begin{document}
+
+\begin{center}
+    \Large\textbf{Final Project: Multimodal Market Analyst AI System}\\[0.5cm]
+    \large Generative AI Intensive Course\\[0.3cm]
+    \normalsize
+\end{center}
+
+\vspace{0.3cm}
+
+\section*{Project Overview}
+
+Students will develop a multimodal AI system capable of addressing market-related queries, providing investment insights, analyzing historical market data, generating forecasts, and visualizing financial information. The system comprises collaborative agents coordinated centrally, leveraging real-world financial documents sourced exclusively from \textbf{Investor Relations (IR)} publications of \textbf{Apple, Microsoft, Google, NVIDIA, and Meta} spanning the years \textbf{2020--2024}.
+
+\section*{System Architecture and Agent Roles}
+
+The system utilizes a multi-agent framework, clearly partitioned into specialized roles as follows:
+
+\subsection*{1. Multimodal Agentic RAG Specialist}
+
+\textbf{Core Responsibilities:}
+\begin{itemize}[noitemsep]
+    \item Process multimodal queries (text, financial tables, images, charts, PDFs).
+    \item Retrieve and synthesize relevant financial data explicitly from provided IR documents.
+    \item Generate precise answers accompanied by explicit citations.
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}[noitemsep]
+    \item Embedding Models: CLIP, SentenceTransformers
+    \item Vector Databases: Chroma
+    \item Generative Models: Gemini (optional QLoRA fine-tuning)
+\end{itemize}
+
+\textbf{Example Query:}
+
+\textit{``Summarize NVIDIA’s recent financial performance based on this earnings presentation."}
+
+\textbf{Sample Output:}
+
+\textit{``NVIDIA’s Q4 FY24 revenue increased by 18\%, driven primarily by strong GPU sales (source: NVIDIA Q4 FY24 Earnings Slides, p. 5)."}
+
+\subsection*{2. Data Science and Analytics Agent}
+
+\textbf{Core Responsibilities:}
+\begin{itemize}[noitemsep]
+    \item Perform detailed trend analyses and forecasting of market data.
+    \item Create visualizations and predictive models.
+    \item Generate explanatory narratives for analytical findings.
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}[noitemsep]
+    \item Data Analysis: Pandas, scikit-learn
+    \item Forecasting Models: Prophet, ARIMA
+    \item Visualization Tools: Matplotlib, Plotly
+    \item Generative Models: Gemini (for insights generation)
+\end{itemize}
+
+\textbf{Example Query:}
+
+\textit{``Analyze Microsoft's stock performance over the past year and forecast its performance next quarter."}
+
+\subsection*{3. Web Search and Real-Time Market Agent}
+
+\textbf{Core Responsibilities:}
+\begin{itemize}[noitemsep]
+    \item Retrieve current market news, sentiment, and events.
+    \item Summarize up-to-date financial information with citations.
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}[noitemsep]
+    \item Web APIs: SerpAPI, Tavily, NewsAPI
+    \item Web Scraping: BeautifulSoup, newspaper3k
+    \item Summarization APIs: Gemini, Hugging Face
+\end{itemize}
+
+\textbf{Example Query:}
+
+\textit{``What recent events are influencing Google's stock price today?"}
+
+\subsection*{4. Coordinator Agent}
+
+\textbf{Core Responsibilities:}
+\begin{itemize}[noitemsep]
+    \item Decompose multimodal queries into subtasks.
+    \item Manage agent interactions and task coordination.
+    \item Aggregate results into cohesive, cited analyses.
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}[noitemsep]
+    \item Agent Frameworks: LangChain, LangGraph
+    \item Generative Models: Gemini API
+\end{itemize}
+
+\subsection*{(Optional) 5. Quality Assurance \& Ethical AI Reviewer}
+
+\textbf{Core Responsibilities:}
+\begin{itemize}[noitemsep]
+    \item Verify factual accuracy and citation integrity.
+    \item Ensure output adherence to ethical guidelines.
+\end{itemize}
+
+\textbf{Key Technologies:}
+\begin{itemize}[noitemsep]
+    \item Moderation: GPT moderation API
+    \item Evaluation Tools: Hugging Face evaluation suite, BERT classifiers
+\end{itemize}
+
+\section*{Student Workflow (Agile Methodology)}
+
+\subsection*{Week 1:}
+\begin{itemize}[noitemsep]
+    \item Dataset preparation (IR documents, 2020–2024).
+    \item Initial multimodal embedding, indexing, and retrieval implementation.
+    \item Implement RAG and Analytics agents fully.
+\end{itemize}
+
+\subsection*{Week 2:}
+\begin{itemize}[noitemsep]
+    \item Web agent integration (real-time data retrieval).
+    \item Coordinator agent and multi-agent integration.
+    \item Optional fine-tuning of embedding and generative models.
+    \item UI development with Gradio; final deployment and QA checks.
+\end{itemize}
+
+\section*{Deliverables}
+\begin{itemize}[noitemsep]
+    \item Final deployed app (Gradio interface, Hugging Face Spaces)
+    \item Fully documented GitHub repository
+    \item Jira project management documentation
+    \item Final project presentation and demonstration
+    \item Technical report detailing architecture, decisions, and lessons learned
+\end{itemize}
+
+\section*{Learning Outcomes and Professional Alignment}
+
+Students will gain practical experience directly aligned with professional roles in financial analytics and generative AI, covering:
+\begin{itemize}[noitemsep]
+    \item Multimodal retrieval and citation-based knowledge synthesis
+    \item Advanced financial analytics and predictive modeling
+    \item Real-time web scraping and API integration
+    \item Agile methodologies and project management
+    \item Production-ready deployment and interface design
+\end{itemize}
+
+This project directly mirrors the technology, practices, and tasks found in current industry positions.
+
+\section*{Resources}
+\begin{itemize}[noitemsep]
+    \item \href{https://langchain-ai.github.io/langgraph/tutorials/workflows/}{Workflows and Agents}
+    \item \href{https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/}{Multi-agent Supervisor}
+    \item \href{https://blog.langchain.dev/semi-structured-multi-modal-rag/}{Multi-Vector Retriever for Multimodal RAG}
+    \item \href{https://python.langchain.com/docs/how_to/multimodal_inputs/}{Passing Multimodal Data to Models}
+    \item \href{https://langchain-ai.github.io/langgraph/concepts/multi_agent/}{Multi-agent Systems Concepts}
+    \item \href{https://python.langchain.com/docs/how_to/qa_sources/}{Returning Sources in RAG}
+    \item \href{https://python.langchain.com/docs/how_to/qa_citations/}{Adding Citations in RAG Applications}
+\end{itemize}
+
+\end{document}
