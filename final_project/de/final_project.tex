@@ -1,0 +1,173 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textbf{Abschlussprojekt: Multimodales KI-System für Marktanalysen}}
+\rfoot{\thepage}
+
+\begin{document}
+
+\begin{center}
+    \LARGE\textbf{Abschlussprojekt: Multimodales KI-System für Marktanalysen}\\[0.5cm]
+    \large Intensivkurs zu Generativer KI \\[0.3cm]
+\end{center}
+
+\section*{Projektübersicht}
+
+Studierende entwickeln ein multimodales KI-System, das in der Lage ist, marktbezogene Fragen zu beantworten, Anlageeinsichten zu liefern, historische Marktdaten zu analysieren, Prognosen zu erstellen und Finanzdaten zu visualisieren. Das System besteht aus spezialisierten KI-Agenten, die koordiniert zusammenarbeiten und reale Finanzdaten nutzen, welche ausschließlich aus offiziellen \textbf{Investor-Relations (IR)}-Dokumenten von \textbf{Apple, Microsoft, Google, NVIDIA und Meta} aus den Jahren \textbf{2020 bis 2024} stammen.
+
+\section*{Systemarchitektur und Rollen der Agenten}
+
+Das System basiert auf einem Multi-Agenten-Rahmenwerk, bestehend aus den folgenden klar definierten Agenten:
+
+\subsection*{1. Multimodaler Agentischer RAG-Spezialist}
+
+\textbf{Hauptaufgaben:}
+\begin{itemize}[noitemsep]
+    \item Verarbeitung multimodaler Abfragen (Text, Tabellen, Bilder, Diagramme, PDFs).
+    \item Abrufen relevanter Finanzdaten aus den IR-Dokumenten.
+    \item Erstellung präziser Antworten mit expliziten Quellenangaben.
+\end{itemize}
+
+\textbf{Wichtige Technologien:}
+\begin{itemize}[noitemsep]
+    \item Embedding-Modelle: CLIP, SentenceTransformers
+    \item Vektordatenbanken: Chroma
+    \item Generative Modelle: Gemini (optional mit QLoRA Fine-tuning)
+\end{itemize}
+
+\textbf{Beispielabfrage:}
+
+\textit{„Fassen Sie die aktuelle Finanzleistung von NVIDIA basierend auf dieser Investorenpräsentation zusammen.“}
+
+\textbf{Beispielantwort:}
+
+\textit{„NVIDIAs Umsatz stieg im Q4 FY24 um 18\,\%, hauptsächlich durch starke GPU-Verkäufe (Quelle: NVIDIA Q4 FY24 Earnings Slides, Seite 5).“}
+
+\subsection*{2. Data-Science- und Analyse-Agent}
+
+\textbf{Hauptaufgaben:}
+\begin{itemize}[noitemsep]
+    \item Durchführung detaillierter Trendanalysen und Marktprognosen.
+    \item Erstellung visueller Darstellungen und Vorhersagemodelle.
+    \item Generierung erklärender Texte zu Analyseergebnissen.
+\end{itemize}
+
+\textbf{Wichtige Technologien:}
+\begin{itemize}[noitemsep]
+    \item Datenanalyse: Pandas, scikit-learn
+    \item Prognosemodelle: Prophet, ARIMA
+    \item Visualisierung: Matplotlib, Plotly
+    \item Generative Modelle: Gemini (zur Generierung erklärender Texte)
+\end{itemize}
+
+\textbf{Beispielabfrage:}
+
+\textit{„Analysieren Sie die Kursentwicklung von Microsoft im letzten Jahr und prognostizieren Sie die Entwicklung im nächsten Quartal.“}
+
+\subsection*{3. Websuche- und Echtzeitmarkt-Agent}
+
+\textbf{Hauptaufgaben:}
+\begin{itemize}[noitemsep]
+    \item Abrufen aktueller Marktnachrichten, Stimmungen und Ereignisse.
+    \item Zusammenfassung aktueller Finanzinformationen mit Quellenangaben.
+\end{itemize}
+
+\textbf{Wichtige Technologien:}
+\begin{itemize}[noitemsep]
+    \item Web-APIs: SerpAPI, Tavily, NewsAPI
+    \item Web Scraping: BeautifulSoup, newspaper3k
+    \item Summarization APIs: Gemini, Hugging Face
+\end{itemize}
+
+\textbf{Beispielabfrage:}
+
+\textit{„Welche aktuellen Ereignisse beeinflussen heute den Aktienkurs von Google?“}
+
+\subsection*{4. Koordinations-Agent}
+
+\textbf{Hauptaufgaben:}
+\begin{itemize}[noitemsep]
+    \item Zerlegung multimodaler Abfragen in Teilaufgaben.
+    \item Koordination der Zusammenarbeit zwischen den einzelnen Agenten.
+    \item Aggregation der Ergebnisse zu einer kohärenten Analyse mit Quellenangaben.
+\end{itemize}
+
+\textbf{Wichtige Technologien:}
+\begin{itemize}[noitemsep]
+    \item Agent-Frameworks: LangChain, LangGraph
+    \item Generative Modelle: Gemini API
+\end{itemize}
+
+\subsection*{(Optional) 5. Qualitätssicherungs- und Ethik-Agent}
+
+\textbf{Hauptaufgaben:}
+\begin{itemize}[noitemsep]
+    \item Prüfung der faktischen Korrektheit und Quellenintegrität.
+    \item Sicherstellung ethischer Richtlinien und Qualitätsstandards.
+\end{itemize}
+
+\textbf{Wichtige Technologien:}
+\begin{itemize}[noitemsep]
+    \item Moderations-API: GPT Moderation API
+    \item Evaluations-Tools: Hugging Face Evaluation Suite, BERT-Klassifikatoren
+\end{itemize}
+
+\section*{Ablaufplan für Studierende (Agile Methodik)}
+
+\subsection*{Woche 1:}
+\begin{itemize}[noitemsep]
+    \item Datenerhebung und Vorbereitung der IR-Dokumente (2020–2024).
+    \item Erste Implementierung der multimodalen Einbettungen und des RAG-Systems.
+    \item Implementierung der RAG- und Analyse-Agenten.
+\end{itemize}
+
+\subsection*{Woche 2:}
+\begin{itemize}[noitemsep]
+    \item Integration des Web-Agenten (Echtzeitdaten).
+    \item Implementierung des Koordinations-Agenten.
+    \item (Optionales) Fine-tuning der Modelle.
+    \item UI-Entwicklung mit Gradio; abschließende Qualitätssicherung und Deployment.
+\end{itemize}
+
+\section*{Abschließende Abgaben}
+\begin{itemize}[noitemsep]
+    \item Fertige App (Gradio UI, Hugging Face Spaces)
+    \item Dokumentiertes GitHub-Repository
+    \item Agile Projektdokumentation mit Jira
+    \item Abschlusspräsentation mit Live-Demo
+    \item Technischer Bericht (Systemarchitektur, Entscheidungen, Erfahrungen)
+\end{itemize}
+
+\section*{Lernziele und berufliche Relevanz}
+
+Studierende erwerben praxisorientierte Fähigkeiten, die direkt auf berufliche Rollen im Bereich Finanzanalysen und Generative KI vorbereiten:
+\begin{itemize}[noitemsep]
+    \item Multimodale Informationsbeschaffung und wissensbasierte Antwortgenerierung
+    \item Fortgeschrittene Finanzanalysen und Prognosemodelle
+    \item Web Scraping und API-Integration für Echtzeitdaten
+    \item Agile Teamarbeit und Projektmanagement
+    \item Praxisorientierte Implementierung und UI-Entwicklung
+\end{itemize}
+
+Dieses Projekt spiegelt realitätsnah Systeme wider, die aktuell in der Industrie eingesetzt werden.
+
+\section*{Weiterführende Ressourcen}
+
+\begin{itemize}[noitemsep]
+    \item \href{https://langchain-ai.github.io/langgraph/tutorials/workflows/}{Workflows and Agents}
+    \item \href{https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/}{Multi-agent Supervisor}
+    \item \href{https://blog.langchain.dev/semi-structured-multi-modal-rag/}{Multi-Vector Retriever for Multimodal RAG}
+    \item \href{https://python.langchain.com/docs/how_to/multimodal_inputs/}{Passing Multimodal Data to Models}
+    \item \href{https://langchain-ai.github.io/langgraph/concepts/multi_agent/}{Multi-agent Systems Concepts}
+    \item \href{https://python.langchain.com/docs/how_to/qa_sources/}{Returning Sources in RAG}
+    \item \href{https://python.langchain.com/docs/how_to/qa_citations/}{Adding Citations in RAG Applications}
+\end{itemize}
+
+\end{document}
