@@ -90,7 +90,7 @@ The multi-agent framework includes clearly defined specialized agents:
 
 **Capabilities & Tasks:**
 
-* Task decomposition and delegation (LangChain, GPT-based agents).
+* Task decomposition and delegation (LangChain, LangGraph).
 * Workflow coordination and response integration.
 
 **Example Workflow:**
@@ -150,10 +150,10 @@ The multi-agent framework includes clearly defined specialized agents:
 
 | **Agent**                       | **Tools/Models**                                                                      |
 | ------------------------------- | ------------------------------------------------------------------------------------- |
-| **Agentic RAG Specialist**      | CLIP, SentenceTransformers, LangChain, FAISS, Chroma, GPT (LoRA fine-tuning optional) |
-| **Data Science Agent**          | Pandas, Matplotlib, Plotly, Prophet, scikit-learn, GPT                                |
-| **Web Search Agent**            | SerpAPI/NewsAPI, Tavily, BeautifulSoup, newspaper3k, OpenAI/HF API                            |
-| **Coordinator Agent**           | LangChain Agents framework, GPT (API-based)                                           |
+| **Agentic RAG Specialist**      | CLIP, SentenceTransformers, LangChain, Chroma, Gemini (QLoRA fine-tuning optional) |
+| **Data Science Agent**          | Pandas, Matplotlib, Plotly, Prophet, scikit-learn, Gemini                                |
+| **Web Search Agent**            | SerpAPI/NewsAPI, Tavily, BeautifulSoup, newspaper3k, Gemini/HF API                            |
+| **Coordinator Agent**           | LangChain Agents framework, Gemini (API-based)                                           |
 | **QA & Ethical Reviewer Agent** | BERT-based classifiers, GPT moderation API, Hugging Face evaluation tools             |
 
 ---
