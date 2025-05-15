@@ -1,229 +1,227 @@
-# 🚀 **Final Project: "Multimodal Market Analyst AI System"**
+# 🚀 **Abschlussprojekt: „Multimodales Marktanalyse-KI-System“**
 
-## 📌 **Project Summary:**
+## 📌 **Projektzusammenfassung:**
 
-Students will build a multimodal AI system capable of answering market-related queries, providing investment insights, analyzing historical market performance, generating forecasts, and visualizing financial data. The system consists of specialized collaborative agents coordinated by a central agent, using real-world financial data sourced exclusively from Investor Relations (IR) publications (PDF reports, slides, earnings call documents, etc.) for **Apple, Microsoft, Google, NVIDIA, and Meta** over the **past 5 years**.
-
----
-
-## 🖥️ **System Overview & Agents' Roles**
-
-The multi-agent framework includes clearly defined specialized agents:
-
-### 🌟 **1. Multimodal Agentic RAG Specialist**
-
-**Core Responsibility:**
-
-* Handle multimodal financial queries (textual questions, financial tables, images/charts, PDFs).
-* Retrieve relevant financial data specifically from IR documents of Apple, Microsoft, Google, NVIDIA, and Meta (past 5 years).
-* Provide accurate and cited answers based explicitly on these sources.
-
-**Capabilities & Tasks:**
-
-* Multimodal embeddings generation (CLIP, SentenceTransformers).
-* Document indexing and retrieval (FAISS, Chroma).
-* Answer synthesis with explicit **citations**.
-
-**Example User Query:**
-
-> “Summarize NVIDIA’s recent financial performance based on this earnings presentation.”
-
-**Example Output:**
-
-> “NVIDIA’s Q4 FY24 revenue rose by 18%, driven by strong GPU sales (source: NVIDIA Q4 FY24 Earnings Slides, page 5).”
+Die Studierenden entwickeln ein multimodales KI-System, das in der Lage ist, marktspezifische Anfragen zu beantworten, Investitionseinblicke zu liefern, historische Marktleistungen zu analysieren, Prognosen zu erstellen und Finanzdaten zu visualisieren. Das System besteht aus spezialisierten, kooperierenden Agenten, die von einem zentralen Koordinator-Agenten gesteuert werden und reale Finanzdaten ausschließlich aus Investor-Relations-(IR-)Veröffentlichungen (PDF-Berichte, Präsentationsfolien, Transkripte von Ergebnispräsentationen usw.) von **Apple, Microsoft, Google, NVIDIA und Meta** aus den **vergangenen 5 Jahren** nutzen.
 
 ---
 
-### 🌟 **2. Data Science & Analytics Agent**
+## 🖥️ **Systemübersicht & Rollen der Agenten**
 
-**Core Responsibility:**
+Das Multi-Agenten-Framework beinhaltet klar definierte, spezialisierte Agenten:
 
-* Conduct advanced market analytics, trend analyses, and predictive modeling.
-* Produce forecasts, explanatory insights, and visualizations.
+### 🌟 **1. Multimodaler Agentic RAG-Spezialist**
 
-**Capabilities & Tasks:**
+**Hauptverantwortung:**
 
-* Extract structured data from IR documents (financial tables, earnings data).
-* Forecasting and predictive modeling (stock-price forecasting with Prophet/ARIMA).
-* Visualization creation (Matplotlib, Plotly).
-* Generate explanatory textual insights for analytical findings.
+* Bearbeitung multimodaler Finanzanfragen (Textfragen, Finanztabellen, Bilder/Diagramme, PDFs).
+* Abruf relevanter Finanzdaten speziell aus IR-Dokumenten von Apple, Microsoft, Google, NVIDIA und Meta (letzte 5 Jahre).
+* Bereitstellung präziser und zitierter Antworten, ausschließlich basierend auf diesen Quellen.
 
-**Example User Query:**
+**Fähigkeiten & Aufgaben:**
 
-> “Analyze Microsoft’s stock performance over the past year and forecast its performance next quarter.”
+* Erzeugung multimodaler Embeddings (CLIP, SentenceTransformers).
+* Dokumentenindexierung und -abruf (FAISS, Chroma).
+* Antwortsynthese mit expliziten **Quellenangaben**.
 
-**Example Output:**
+**Beispielhafte Nutzeranfrage:**
 
-* Interactive stock-price visualization.
-* A forecast for the next quarter with clearly presented confidence intervals and explanatory text.
+> „Fassen Sie die jüngste Finanzleistung von NVIDIA basierend auf dieser Ergebnispräsentation zusammen.“
 
----
+**Beispielausgabe:**
 
-### 🌟 **3. Web Search & Real-Time Market Agent**
-
-**Core Responsibility:**
-
-* Retrieve real-time market news, financial events, and current sentiment.
-* Extract timely information from reputable online financial sources.
-
-**Capabilities & Tasks:**
-
-* Web scraping and real-time data retrieval (Yahoo Finance, Alpha Vantage, NewsAPI).
-* Summarize recent market sentiment and relevant updates clearly with citations.
-
-**Example User Query:**
-
-> “What's the latest news affecting Google’s stock price today?”
-
-**Example Output:**
-
-> "Google's stock rose 3% today, driven by positive market reactions to its latest AI product announcements (source: CNBC, May 2025)."
+> „NVIDIAs Umsatz im Q4 GJ24 stieg um 18 %, getrieben durch starke GPU-Verkäufe (Quelle: NVIDIA Q4 FY24 Earnings Slides, Seite 5).“
 
 ---
 
-### 🌟 **4. Coordinator Agent**
+### 🌟 **2. Datenwissenschafts- & Analyse-Agent**
 
-**Core Responsibility:**
+**Hauptverantwortung:**
 
-* Orchestrate complex queries, decompose tasks, and manage agent collaboration.
-* Aggregate individual agent outputs into coherent, citation-rich summaries.
+* Durchführung fortgeschrittener Marktanalysen, Trendanalysen und prädiktiver Modellierung.
+* Erstellung von Prognosen, erklärenden Erkenntnissen und Visualisierungen.
 
-**Capabilities & Tasks:**
+**Fähigkeiten & Aufgaben:**
 
-* Task decomposition and delegation (LangChain, LangGraph).
-* Workflow coordination and response integration.
+* Extraktion strukturierter Daten aus IR-Dokumenten (Finanztabellen, Ergebnisdaten).
+* Prognosen und prädiktive Modellierung (z. B. Aktienkursprognosen mit Prophet/ARIMA).
+* Erstellung von Visualisierungen (Matplotlib, Plotly).
+* Generierung erklärender Texte zu Analyseergebnissen.
 
-**Example Workflow:**
+**Beispielhafte Nutzeranfrage:**
 
-* Decompose multimodal query:
+> „Analysieren Sie Microsofts Aktienentwicklung im letzten Jahr und prognostizieren Sie die Performance im nächsten Quartal.“
 
-  * Retrieval and synthesis (RAG Agent).
-  * Forecast and visualization generation (Data Science Agent).
-  * Real-time sentiment and news retrieval (Web Search Agent).
-* Aggregate results into unified, cited analysis.
+**Beispielausgabe:**
 
----
-
-### 🌟 **(Optional) 5. Quality Assurance & Ethical AI Reviewer**
-
-**Core Responsibility:**
-
-* Ensure accuracy, reliability, and ethical integrity of generated outputs.
-* Validate factual correctness and appropriate citations.
-
-**Capabilities & Tasks:**
-
-* Automated moderation, bias checks, and fact verification.
-* Ensure transparency, fairness, and ethical compliance.
+* Interaktive Aktienkurs-Visualisierung.
+* Prognose für das nächste Quartal mit klar dargestellten Konfidenzintervallen und erläuterndem Text.
 
 ---
 
-## 🎨 **System Workflow (Example scenario):**
+### 🌟 **3. Websuche- & Echtzeit-Markt-Agent**
 
-1. **User Query (multimodal input):**
+**Hauptverantwortung:**
 
-   > "Based on these recent charts and current news, summarize Meta’s stock performance and predict its next-quarter outlook."
+* Echtzeitbeschaffung von Marktnachrichten, Finanzereignissen und aktueller Stimmung.
+* Extraktion aktueller Informationen aus seriösen Online-Quellen.
 
-2. **Coordinator Agent:**
+**Fähigkeiten & Aufgaben:**
 
-   * Parses query.
-   * Assigns tasks to appropriate agents.
+* Web-Scraping und Datenabruf in Echtzeit (Yahoo Finance, Alpha Vantage, NewsAPI).
+* Klare Zusammenfassung der aktuellen Marktlage und Updates mit Quellenangabe.
 
-3. **Individual Agents respond:**
+**Beispielhafte Nutzeranfrage:**
 
-   * **RAG Agent:** Summarizes provided IR documents.
-   * **Web Search Agent:** Retrieves latest market sentiment/news.
-   * **Data Science Agent:** Generates stock-price predictions and visualizations.
+> „Was sind die neuesten Nachrichten, die heute den Aktienkurs von Google beeinflussen?“
 
-4. **Coordinator Agent aggregates:**
+**Beispielausgabe:**
 
-   * Produces integrated, multimodal financial analysis with citations.
-
-5. **(Optional) QA Agent:** Ensures answer quality, citations, and ethical compliance.
-
-
-6. **Final Result:** Presented via a **Gradio UI deployed to Hugging Face Spaces**.
+> "Googles Aktie stieg heute um 3 %, ausgelöst durch positive Reaktionen auf neue KI-Produktankündigungen (Quelle: CNBC, Mai 2025)."
 
 ---
 
-## 🛠️ **Recommended Technical Stack**
+### 🌟 **4. Koordinator-Agent**
 
-| **Agent**                       | **Tools/Models**                                                                      |
-| ------------------------------- | ------------------------------------------------------------------------------------- |
-| **Agentic RAG Specialist**      | CLIP, SentenceTransformers, LangChain, Chroma, Gemini (QLoRA fine-tuning optional) |
-| **Data Science Agent**          | Pandas, Matplotlib, Plotly, Prophet, scikit-learn, Gemini                                |
-| **Web Search Agent**            | SerpAPI/NewsAPI, Tavily, BeautifulSoup, newspaper3k, Gemini/HF API                            |
-| **Coordinator Agent**           | LangChain Agents framework, Gemini (API-based)                                           |
-| **QA & Ethical Reviewer Agent** | BERT-based classifiers, GPT moderation API, Hugging Face evaluation tools             |
+**Hauptverantwortung:**
+
+* Orchestrierung komplexer Anfragen, Aufgabenzerlegung und Koordination der Agenten.
+* Aggregation der Ergebnisse in kohärente, zitierte Zusammenfassungen.
+
+**Fähigkeiten & Aufgaben:**
+
+* Aufgabenzerlegung und Delegierung (LangChain, LangGraph).
+* Workflow-Koordination und Integration der Antworten.
+
+**Beispielhafter Workflow:**
+
+* Zerlegung einer multimodalen Anfrage:
+
+  * Datenabruf und Synthese (RAG-Agent).
+  * Prognose und Visualisierung (Datenanalyse-Agent).
+  * Echtzeitnachrichten und Stimmung (Websuche-Agent).
+* Zusammenführung zu einer einheitlichen, zitierten Analyse.
 
 ---
 
-## 🎯 **Dataset (Explicitly Defined):**
+### 🌟 **(Optional) 5. Qualitätssicherungs- & Ethik-KI-Prüfer**
 
-* **Investor Relations documents (2020–2024)** for:
+**Hauptverantwortung:**
+
+* Sicherstellung der Genauigkeit, Zuverlässigkeit und ethischen Integrität der Ausgaben.
+* Validierung der Fakten und Quellenangaben.
+
+**Fähigkeiten & Aufgaben:**
+
+* Automatisierte Moderation, Bias-Prüfungen, Faktenüberprüfung.
+* Sicherstellung von Transparenz, Fairness und ethischer Konformität.
+
+---
+
+## 🎨 **System-Workflow (Beispielszenario):**
+
+1. **Benutzeranfrage (multimodaler Input):**
+
+   > "Basierend auf diesen aktuellen Diagrammen und Nachrichten: Fassen Sie Metas Aktienleistung zusammen und geben Sie eine Prognose für das nächste Quartal ab."
+
+2. **Koordinator-Agent:**
+
+   * Analysiert die Anfrage.
+   * Leitet Aufgaben an die passenden Agenten weiter.
+
+3. **Einzelne Agenten antworten:**
+
+   * **RAG-Agent:** Fasst bereitgestellte IR-Dokumente zusammen.
+   * **Websuche-Agent:** Ruft aktuelle Marktnachrichten und Stimmung ab.
+   * **Datenanalyse-Agent:** Erstellt Kursprognosen und Visualisierungen.
+
+4. **Koordinator-Agent aggregiert:**
+
+   * Generiert eine integrierte, multimodale Finanzanalyse mit Quellenangaben.
+
+5. **(Optional) QA-Agent:** Prüft Antwortqualität, Quellen und ethische Einhaltung.
+
+6. **Endergebnis:** Präsentation über eine **Gradio-Benutzeroberfläche auf Hugging Face Spaces**.
+
+---
+
+## 🛠️ **Empfohlener Technologiestack**
+
+| **Agent**                   | **Tools/Modelle**                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| **Agentic RAG-Spezialist**  | CLIP, SentenceTransformers, LangChain, Chroma, Gemini (QLoRA Fine-Tuning optional) |
+| **Datenanalyse-Agent**      | Pandas, Matplotlib, Plotly, Prophet, scikit-learn, Gemini                          |
+| **Websuche-Agent**          | SerpAPI/NewsAPI, Tavily, BeautifulSoup, newspaper3k, Gemini/HF API                 |
+| **Koordinator-Agent**       | LangChain-Agentenframework, Gemini (API-basiert)                                   |
+| **QA & Ethik-Prüfer-Agent** | BERT-Klassifikatoren, GPT-Moderation-API, Hugging Face Evaluationstools            |
+
+---
+
+## 🎯 **Datensatz (explizit definiert):**
+
+* **Investor-Relations-Dokumente (2020–2024)** von:
 
   * Apple, Microsoft, Google, NVIDIA, Meta
-* Document types:
+* Dokumenttypen:
 
-  * Annual reports (10-K), quarterly reports (10-Q)
-  * Earnings call transcripts and slides
-  * Investor presentations, charts, graphs
-
----
-
-## 🧑‍💻 **Student Workflow (Agile)**:
-
-* **Week 1:**
-
-  * Dataset acquisition and preparation from IR resources.
-  * Multimodal document processing and embeddings.
-  * Initial agent implementations.
-  * Full RAG implementation with retrieval and citation.
-  * Analytics agent: forecasting and visualization.
-
-* **Week 2:**
-
-  * Web search integration, real-time data extraction.
-  * Coordinator agent implementation.
-  * Integration of all agents.
-  * QA agent and ethical validation (optional).
-  * Fine-tuning of RAG and quality assurance agents on the provided dataset (optional).
-  * UI development with Gradio; final deployment.
+  * Jahresberichte (10-K), Quartalsberichte (10-Q)
+  * Transkripte und Folien von Ergebnispräsentationen
+  * Investorenpräsentationen, Diagramme, Grafiken
 
 ---
 
-## 📦 **Final Deliverables:**
+## 🧑‍💻 **Studentischer Workflow (Agil):**
 
-* 🚀 **Gradio-based Hugging Face Spaces Application**
-* 📁 **Well-documented GitHub Repository**
-* 📊 **Jira Project Board (Agile Documentation)**
-* 🎬 **Presentation & Demo**
-* 📑 **Technical report (architecture, decisions, reflections)**
+* **Woche 1:**
 
----
+  * Beschaffung und Aufbereitung der IR-Daten.
+  * Verarbeitung multimodaler Dokumente und Erstellung von Embeddings.
+  * Erste Implementierung der Agenten.
+  * Vollständige RAG-Implementierung inkl. Datenabruf und Quellenangabe.
+  * Analyse-Agent: Prognosen und Visualisierungen.
 
-## ✅ **Why this System?**
+* **Woche 2:**
 
-Students will gain real-world experience directly aligned with professional roles in financial analysis and generative AI, learning:
-
-* Advanced multimodal data retrieval
-* Financial data analysis and visualization
-* Predictive analytics and forecasting
-* Web scraping and real-time data integration
-* Agile teamwork, Jira-based project management
-* Production-grade deployment skills
-
-This project mirrors the exact type of multimodal AI financial analytics systems currently deployed in industry, significantly enhancing student employability.
+  * Integration von Websuche und Echtzeitdaten.
+  * Umsetzung des Koordinator-Agenten.
+  * Integration aller Agenten.
+  * QA-Agent und ethische Validierung (optional).
+  * Fine-Tuning der RAG- und QA-Agenten auf bereitgestelltem Datensatz (optional).
+  * UI-Entwicklung mit Gradio; finale Bereitstellung.
 
 ---
 
-## **Resources**
+## 📦 **Endabgaben:**
 
-- [Workflows and Agents](https://langchain-ai.github.io/langgraph/tutorials/workflows/)
-- [Multi-agent supervisor](https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/)
-- [Multi-Vector Retriever for RAG on tables, text, and images](https://blog.langchain.dev/semi-structured-multi-modal-rag/)
-- [How to pass multimodal data to models](https://python.langchain.com/docs/how_to/multimodal_inputs/)
-- [Multi-agent systems](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
-- [Multi-agent supervisor](https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/)
-- [How to get your RAG application to return sources](https://python.langchain.com/docs/how_to/qa_sources/)
-- [How to get a RAG application to add citations](https://python.langchain.com/docs/how_to/qa_citations/)
+* 🚀 **Gradio-App auf Hugging Face Spaces**
+* 📁 **Dokumentiertes GitHub-Repository**
+* 📊 **Jira-Projektboard (agile Dokumentation)**
+* 🎬 **Präsentation & Demo**
+* 📑 **Technischer Bericht (Architektur, Entscheidungen, Reflexionen)**
+
+---
+
+## ✅ **Warum dieses System?**
+
+Die Studierenden erwerben praktische Erfahrungen, die direkt mit Berufsrollen in der Finanzanalyse und generativen KI verbunden sind:
+
+* Fortschrittlicher multimodaler Datenabruf
+* Finanzdatenanalyse und -visualisierung
+* Prädiktive Analytik und Prognoseerstellung
+* Web-Scraping und Integration von Echtzeitdaten
+* Agiles Teamwork, Projektmanagement mit Jira
+* Fähigkeiten zur produktionsreifen Bereitstellung
+
+Dieses Projekt spiegelt exakt die Art von multimodalen KI-Analysetools wider, die aktuell in der Industrie eingesetzt werden – ein klarer Pluspunkt für die spätere Beschäftigungsfähigkeit.
+
+---
+
+## **Ressourcen**
+
+* [Workflows und Agenten](https://langchain-ai.github.io/langgraph/tutorials/workflows/)
+* [Multi-Agent-Supervisor](https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/)
+* [Multi-Vector Retriever für RAG mit Tabellen, Text & Bildern](https://blog.langchain.dev/semi-structured-multi-modal-rag/)
+* [Multimodale Daten an Modelle übergeben](https://python.langchain.com/docs/how_to/multimodal_inputs/)
+* [Multi-Agent-Systeme](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
+* [Quellenangaben in RAG-Anwendungen](https://python.langchain.com/docs/how_to/qa_sources/)
+* [RAG-Antworten mit Zitaten anreichern](https://python.langchain.com/docs/how_to/qa_citations/)
