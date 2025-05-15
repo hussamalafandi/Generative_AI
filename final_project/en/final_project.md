@@ -21,7 +21,7 @@ The multi-agent framework includes clearly defined specialized agents:
 **Capabilities & Tasks:**
 
 * Multimodal embeddings generation (CLIP, SentenceTransformers).
-* Document indexing and retrieval (FAISS, Chroma).
+* Document indexing and retrieval (Chroma).
 * Answer synthesis with explicit **citations**.
 
 **Example User Query:**
