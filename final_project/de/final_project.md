@@ -21,7 +21,7 @@ Das Multi-Agenten-Framework beinhaltet klar definierte, spezialisierte Agenten:
 **Fähigkeiten & Aufgaben:**
 
 * Erzeugung multimodaler Embeddings (CLIP, SentenceTransformers).
-* Dokumentenindexierung und -abruf (FAISS, Chroma).
+* Dokumentenindexierung und -abruf (Chroma).
 * Antwortsynthese mit expliziten **Quellenangaben**.
 
 **Beispielhafte Nutzeranfrage:**
